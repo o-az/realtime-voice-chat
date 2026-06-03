@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fish Voice Chat</title>
+  </head>
+  <body>
+    <main>
+      <section class="call">
+        <div class="status-row">
+          <span id="status-dot" aria-hidden="true"></span>
+          <p id="status">Disconnected</p>
+        </div>
+
+        <label>
+          Room
+          <input id="room" autocomplete="off" />
+        </label>
+
+        <div class="actions">
+          <button id="connect" type="button">Connect</button>
+          <button id="disconnect" type="button" disabled>Disconnect</button>
+        </div>
+
+        <audio id="remote-audio" autoplay playsinline></audio>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

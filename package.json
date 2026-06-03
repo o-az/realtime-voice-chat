@@ -1,0 +1,22 @@
+{
+  "name": "realtime-voice-chat-fish",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "dev:agent": "op run --env-file .env -- uv run --directory agent agent.py dev",
+    "dev:agent:download-files": "uv run --directory agent --module livekit.agents download-files",
+    "dev:server": "op run --env-file .env -- bun run --cwd server dev",
+    "dev:web": "bun run --cwd web dev",
+    "dev": "bunx concurrently \"bun run dev:server\" \"bun run dev:web\" \"bun run dev:agent\"",
+    "check": "bun run check:server && bun run check:web && uv run --directory agent ruff check . && uv run --directory agent pyright",
+    "check:server": "bun run --cwd server check",
+    "check:web": "bun run --cwd web check"
+  },
+  "devDependencies": {
+    "concurrently": "latest"
+  }
+}
