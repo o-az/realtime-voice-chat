@@ -11,14 +11,11 @@ dependencies = [
   "livekit-plugins-silero>=1.5.0",
   "livekit-plugins-turn-detector>=1.5.0",
   "livekit-plugins-xai>=1.5.0",
-  "python-dotenv>=1.0.1",
+  "python-dotenv>=1.0.1"
 ]
 
 [dependency-groups]
-dev = [
-  "pyright>=1.1.407",
-  "ruff>=0.14.0",
-]
+dev = ["pyright>=1.1.407", "ruff>=0.14.0"]
 
 [tool.ruff]
 line-length = 100

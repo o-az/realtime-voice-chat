@@ -1,0 +1,6 @@
+* text=auto
+.gitattributes !filter !diff
+
+bun.lock linguist-language=JSON-with-Comments
+.zed/*.json linguist-language=JSON-with-Comments
+tsconfig.json linguist-language=JSON-with-Comments

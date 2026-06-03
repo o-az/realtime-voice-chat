@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from typing import Literal, cast
@@ -98,9 +99,28 @@ def build_llm() -> LLM:
     raise ValueError(f"Unsupported LLM_PROVIDER: {provider}")
 
 
+def fish_voice_id(ctx: agents.JobContext) -> str:
+    fallback = require_env("FISH_VOICE_ID")
+    metadata = ctx.job.metadata
+    if not metadata:
+        return fallback
+
+    try:
+        parsed = json.loads(metadata)
+    except json.JSONDecodeError:
+        logger.warning("ignoring invalid job metadata: %s", metadata)
+        return fallback
+
+    voice_id = parsed.get("fishVoiceId")
+    if isinstance(voice_id, str) and voice_id:
+        return voice_id
+
+    return fallback
+
+
 @server.rtc_session(agent_name="fish-voice-agent")
 async def fish_voice_agent(ctx: agents.JobContext) -> None:
-    voice_id = require_env("FISH_VOICE_ID")
+    voice_id = fish_voice_id(ctx)
     fish_tts_model = os.getenv("FISH_TTS_MODEL", "s2-pro")
     fish_tts_latency_mode = fish_latency_mode()
     fish_tts_chunk_length = int(os.getenv("FISH_TTS_CHUNK_LENGTH", "100"))

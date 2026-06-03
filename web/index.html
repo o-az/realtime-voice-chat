@@ -2,30 +2,65 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
     <title>Fish Voice Chat</title>
   </head>
   <body>
     <main>
       <section class="call">
         <div class="status-row">
-          <span id="status-dot" aria-hidden="true"></span>
+          <span
+            id="status-dot"
+            aria-hidden="true"></span>
           <p id="status">Disconnected</p>
         </div>
 
         <label>
           Room
-          <input id="room" autocomplete="off" />
+          <input
+            id="room"
+            autocomplete="off" />
+        </label>
+
+        <label>
+          Fish voice ID
+          <input
+            id="voice-id"
+            autocomplete="off" />
         </label>
 
         <div class="actions">
-          <button id="connect" type="button">Connect</button>
-          <button id="disconnect" type="button" disabled>Disconnect</button>
+          <button
+            id="connect"
+            type="button">
+            Connect
+          </button>
+          <button
+            id="disconnect"
+            type="button"
+            disabled>
+            Disconnect
+          </button>
         </div>
 
-        <audio id="remote-audio" autoplay playsinline></audio>
+        <audio
+          id="remote-audio"
+          autoplay
+          playsinline></audio>
+      </section>
+
+      <section
+        class="transcript"
+        aria-label="Live transcript">
+        <div
+          id="transcript-lines"
+          class="transcript-lines"></div>
       </section>
     </main>
-    <script type="module" src="/src/main.ts"></script>
+    <script
+      type="module"
+      src="/src/main.ts"></script>
   </body>
 </html>

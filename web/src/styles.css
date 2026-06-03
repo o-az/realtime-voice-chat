@@ -2,7 +2,12 @@
   color: #18181b;
   background: #f7f7f8;
   font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
     sans-serif;
 }
 
@@ -16,15 +21,17 @@ body {
 
 main {
   min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 96px 24px 28px;
+  gap: 24px;
 }
 
 .call {
   width: min(100%, 420px);
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .status-row {
@@ -40,16 +47,16 @@ main {
   background: #a1a1aa;
 }
 
-#status-dot[data-state="connected"] {
+#status-dot[data-state='connected'] {
   background: #16a34a;
 }
 
-#status-dot[data-state="connecting"],
-#status-dot[data-state="reconnecting"] {
+#status-dot[data-state='connecting'],
+#status-dot[data-state='reconnecting'] {
   background: #d97706;
 }
 
-#status-dot[data-state="error"] {
+#status-dot[data-state='error'] {
   background: #dc2626;
 }
 
@@ -77,6 +84,54 @@ input {
   background: #ffffff;
   color: #18181b;
   font: inherit;
+}
+
+.transcript {
+  width: min(100%, 1040px);
+  min-height: 300px;
+  display: grid;
+  border-top: 1px solid #d4d4d8;
+  padding-top: 16px;
+}
+
+.transcript-lines {
+  min-height: 300px;
+  max-height: 46vh;
+  overflow: auto;
+  padding: 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.transcript-line {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 12px;
+  align-items: baseline;
+  color: #18181b;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.transcript-line.partial .text {
+  color: #71717a;
+}
+
+.speaker {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.speaker.you {
+  color: #0f766e;
+}
+
+.speaker.agent {
+  color: #7c3aed;
 }
 
 .actions {

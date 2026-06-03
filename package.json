@@ -11,12 +11,20 @@
     "dev:agent:download-files": "uv run --directory agent --module livekit.agents download-files",
     "dev:server": "op run --env-file .env -- bun run --cwd server dev",
     "dev:web": "bun run --cwd web dev",
-    "dev": "bunx concurrently \"bun run dev:server\" \"bun run dev:web\" \"bun run dev:agent\"",
-    "check": "bun run check:server && bun run check:web && uv run --directory agent ruff check . && uv run --directory agent pyright",
+    "dev": "bun run scripts/dev.ts",
+    "check:all": "bun run check:server && bun run check:web && uv run --directory agent ruff check . && uv run --directory agent pyright",
     "check:server": "bun run --cwd server check",
-    "check:web": "bun run --cwd web check"
+    "check:web": "bun run --cwd web check",
+    "format": "oxfmt --config='oxfmt.config.ts' --write",
+    "lint": "oxlint --config='oxlint.config.ts' --type-aware --type-check --fix-dangerously",
+    "check": "bun format && bun lint"
   },
   "devDependencies": {
-    "concurrently": "latest"
+    "@total-typescript/ts-reset": "^0.6.1",
+    "@types/bun": "^1.3.14",
+    "@types/node": "^25.9.1",
+    "oxfmt": "^0.53.0",
+    "oxlint": "^1.68.0",
+    "oxlint-tsgolint": "^0.23.0"
   }
 }

@@ -3,20 +3,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun --watch src/index.ts",
+    "dev": "bun --hot src/index.ts",
     "start": "bun src/index.ts",
     "check": "tsc --noEmit"
   },
   "dependencies": {
-    "cors": "latest",
-    "express": "latest",
     "livekit-server-sdk": "latest",
     "zod": "latest"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/cors": "latest",
-    "@types/express": "latest",
     "typescript": "latest"
   }
 }
