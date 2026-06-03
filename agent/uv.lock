@@ -454,6 +454,7 @@ dependencies = [
     { name = "livekit-plugins-openai" },
     { name = "livekit-plugins-silero" },
     { name = "livekit-plugins-turn-detector" },
+    { name = "livekit-plugins-xai" },
     { name = "python-dotenv" },
 ]
 
@@ -470,6 +471,7 @@ requires-dist = [
     { name = "livekit-plugins-openai", specifier = ">=1.5.0" },
     { name = "livekit-plugins-silero", specifier = ">=1.5.0" },
     { name = "livekit-plugins-turn-detector", specifier = ">=1.5.0" },
+    { name = "livekit-plugins-xai", specifier = ">=1.5.0" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
 ]
 
@@ -951,6 +953,9 @@ codecs = [
 images = [
     { name = "pillow" },
 ]
+openai = [
+    { name = "livekit-plugins-openai" },
+]
 
 [[package]]
 name = "livekit-api"
@@ -1054,6 +1059,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/af/4d/f176fdb20430e699f4de8f090586753db1b6399d26ba40d85a244cc0d754/livekit_plugins_turn_detector-1.5.17.tar.gz", hash = "sha256:d36cd804d4d7564bdb7f8c8fe1315cfe971fbe70889f139019ef1195a914f8e0", size = 8728, upload-time = "2026-06-03T01:38:50.377Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/aa/e4/33f8d1f7b3893281e7b365e33a9bfa4a4a93087abbf743f8e13c1a3473ff/livekit_plugins_turn_detector-1.5.17-py3-none-any.whl", hash = "sha256:67682f874c8b5327445c1250c1fcff641dfe108d26e931379496c47db5400c00", size = 10361, upload-time = "2026-06-03T01:38:49.397Z" },
+]
+
+[[package]]
+name = "livekit-plugins-xai"
+version = "1.5.17"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "livekit-agents", extra = ["openai"] },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/43/35/cce180d34004a9de348ec0bd9af35d5399409a3592d707e50b04d8a25098/livekit_plugins_xai-1.5.17.tar.gz", hash = "sha256:8e3dcba094fbc56dc4ec0bcfb3eb9546ae15f27130bef79955f38c872a61c857", size = 12425, upload-time = "2026-06-03T01:38:51.555Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1f/ee/d90c331fef1c8c6f1e1111c62bcf9e1bc734e9ee0ee1e38cf8807767296e/livekit_plugins_xai-1.5.17-py3-none-any.whl", hash = "sha256:38dc89c59ccc9fa2c534b6513b34da48231973995d0f1bfb54b2d9a78dcdd2a4", size = 16419, upload-time = "2026-06-03T01:38:50.561Z" },
 ]
 
 [[package]]

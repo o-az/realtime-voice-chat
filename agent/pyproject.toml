@@ -10,6 +10,7 @@ dependencies = [
   "livekit-plugins-openai>=1.5.0",
   "livekit-plugins-silero>=1.5.0",
   "livekit-plugins-turn-detector>=1.5.0",
+  "livekit-plugins-xai>=1.5.0",
   "python-dotenv>=1.0.1",
 ]
 
