@@ -130,7 +130,9 @@ function isTranscriptItem(value: unknown): value is TranscriptItem {
 
 function setMicMuted(nextMuted: boolean) {
   micMuted = nextMuted
-  muteButton.textContent = micMuted ? 'Unmute mic' : 'Mute mic'
+  const label = micMuted ? 'Unmute microphone' : 'Mute microphone'
+  muteButton.setAttribute('aria-label', label)
+  muteButton.setAttribute('title', label)
   muteButton.setAttribute('aria-pressed', String(micMuted))
   muteButton.classList.toggle('active', micMuted)
 }

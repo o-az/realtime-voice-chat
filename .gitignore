@@ -7,3 +7,6 @@ __pycache__/
 .ruff_cache/
 .pyright/
 *.pyc
+*.egg-info/
+.pi
+_

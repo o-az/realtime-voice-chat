@@ -13,13 +13,17 @@
   },
   "hidden_files": [
     "**/.git",
+    "**/.pi",
+    "**/*.egg*",
     "**/.venv",
     "**/.wrangler",
     "**/.ruff_cache",
     "**/__pycache__"
   ],
   "file_scan_exclusions": [
+    "**/.pi",
     "**/.git",
+    "**/*.egg*",
     "**/.venv",
     "**/.wrangler",
     "**/.ruff_cache",
@@ -63,9 +67,80 @@
           "fmt.configPath": null
         }
       }
+    },
+    "ruff": {
+      "fetch": {
+        "pre_release": true
+      },
+      "initialization_options": {
+        "settings": {
+          "lineLength": 100,
+          "lint": {
+            "extendSelect": [
+              "I"
+            ]
+          }
+        }
+      }
+    },
+    "pyrefly": {
+      "fetch": {
+        "pre_release": true
+      },
+      "binary": {
+        "path": "~/.local/share/mise/installs/github-facebook-pyrefly/latest/pyrefly",
+        "arguments": [
+          "lsp"
+        ]
+      }
+    },
+    "tombi": {
+      "fetch": {
+        "pre_release": true
+      },
+      "binary": {
+        "arguments": [
+          "lsp",
+          "-v"
+        ],
+        "env": {
+          "NO_COLOR": "true"
+        },
+        "ignore_system_version": false
+      }
     }
   },
   "languages": {
+    "TOML": {
+      "format_on_save": "on",
+      "language_servers": [
+        "tombi"
+      ],
+      "show_edit_predictions": false,
+      "formatter": {
+        "language_server": {
+          "name": "tombi"
+        }
+      }
+    },
+    "Python": {
+      "code_actions_on_format": {
+        "source.fixAll.ruff": true,
+        "source.organizeImports.ruff": true
+      },
+      "format_on_save": "on",
+      "language_servers": [
+        "ruff",
+        "pyrefly",
+        "!pyright",
+        "!pylsp"
+      ],
+      "formatter": {
+        "language_server": {
+          "name": "ruff"
+        }
+      }
+    },
     "CSS": {
       "format_on_save": "on",
       "prettier": {

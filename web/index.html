@@ -45,16 +45,28 @@
           </button>
         </div>
 
-        <details class="controls">
-          <summary>Controls</summary>
+        <div
+          class="control-menu"
+          aria-label="Call controls">
           <button
             id="mute"
+            class="icon-button"
             type="button"
             disabled
-            aria-pressed="false">
-            Mute mic
+            aria-pressed="false"
+            aria-label="Mute microphone"
+            title="Mute microphone">
+            <svg
+              class="mic-icon"
+              aria-hidden="true"
+              viewBox="0 0 24 24">
+              <path d="M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z" />
+              <path d="M5 10v1a7 7 0 0 0 14 0v-1" />
+              <path d="M12 18v3" />
+              <path d="M8 21h8" />
+            </svg>
           </button>
-        </details>
+        </div>
 
         <audio
           id="remote-audio"

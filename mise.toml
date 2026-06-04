@@ -1,0 +1,18 @@
+#:schema https://mise.en.dev/schema/mise.json
+
+[tools]
+uv = "latest"
+bun = "latest"
+node = "latest"
+shfmt = "latest"
+tombi = "latest"
+just = "latest"
+oxfmt = "latest"
+oxlint = "latest"
+shellcheck = "latest"
+"github:facebook/pyrefly" = "latest"
+ruff = "latest"
+
+[settings]
+pipx.uvx = true
+experimental = true

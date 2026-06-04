@@ -17,14 +17,14 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 96px 24px 28px;
-  gap: 24px;
+  padding: 56px 24px 20px;
+  gap: 18px;
 }
 
 .call {
   width: min(100%, 420px);
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .status-row {
@@ -81,15 +81,16 @@ input {
 
 .transcript {
   width: min(100%, 1040px);
-  min-height: 300px;
+  flex: 1;
+  min-height: 420px;
   display: grid;
   border-top: 1px solid #d4d4d8;
   padding-top: 16px;
 }
 
 .transcript-lines {
-  min-height: 300px;
-  max-height: 46vh;
+  min-height: 420px;
+  max-height: calc(100vh - 360px);
   overflow: auto;
   padding: 6px 0;
   display: flex;
@@ -133,30 +134,55 @@ input {
   gap: 10px;
 }
 
-.controls {
+.control-menu {
   border-top: 1px solid #e4e4e7;
-  padding-top: 12px;
+  padding-top: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
 }
 
-.controls summary {
-  width: fit-content;
-  color: #52525b;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.controls button {
-  width: 100%;
-  margin-top: 10px;
+.icon-button {
+  width: 38px;
+  min-height: 38px;
+  height: 38px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
   background: #3f3f46;
+  padding: 0;
 }
 
-.controls button.active {
-  background: #0f766e;
+.icon-button.active {
+  background: #be123c;
+}
+
+.mic-icon {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-button.active .mic-icon {
+  opacity: 0.95;
+}
+
+.icon-button.active::after {
+  content: '';
+  position: absolute;
+  width: 21px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transform: rotate(-45deg);
 }
 
 button {
+  position: relative;
   min-height: 44px;
   border: 0;
   border-radius: 6px;

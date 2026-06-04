@@ -32,25 +32,20 @@ function prefixOutput(name: ProcessName, stream: ReadableStream<Uint8Array> | nu
       const lines = buffer.split(/\r?\n/)
       buffer = lines.pop() ?? ''
 
-      for (const line of lines) {
-        process.stdout.write(`[${name}] ${line}\n`)
-      }
+      for (const line of lines) process.stdout.write(`[${name}] ${line}\n`)
     }
 
-    if (buffer) {
-      process.stdout.write(`[${name}] ${buffer}\n`)
-    }
-  })().catch((error: unknown) => {
-    console.error(`[${name}] failed to read process output`, error)
+    if (buffer) process.stdout.write(`[${name}] ${buffer}\n`)
+  })().catch(error => {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(`[${name}] failed to read process output`, errorMessage)
   })
 }
 
 function stopChildren(signal: NodeJS.Signals = 'SIGTERM') {
   shuttingDown = true
   for (const child of children.values()) {
-    if (!child.killed && child.exitCode === null) {
-      child.kill(signal)
-    }
+    if (!child.killed && child.exitCode === null) child.kill(signal)
   }
 }
 
