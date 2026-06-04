@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
-import tailwindcss from '@tailwindcss/vite'
 import evlog from 'evlog/vite'
+import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [

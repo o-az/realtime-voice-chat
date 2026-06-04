@@ -1,0 +1,18 @@
+{
+  "$schema": "https://esm.sh/wrangler/config-schema.json",
+  "name": "fvc-app",
+  "keep_vars": true,
+  "workers_dev": true,
+  "preview_urls": true,
+  "main": "./src/main.ts",
+  "assets": {
+    "directory": "./dist"
+  },
+  "compatibility_date": "2026-06-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
