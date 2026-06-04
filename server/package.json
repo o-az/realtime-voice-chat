@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun --hot src/index.ts",
-    "start": "bun src/index.ts",
-    "check": "tsc --noEmit"
+    "dev": "bun --hot --watch ./src/index.ts",
+    "start": "bun ./src/index.ts",
+    "check": "tsgo --project tsconfig.json --noEmit"
   },
   "dependencies": {
     "zod": "catalog:",
@@ -15,6 +15,7 @@
   "devDependencies": {
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "@typescript/native-preview": "catalog:"
   }
 }

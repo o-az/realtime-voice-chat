@@ -157,7 +157,9 @@
     "HTML": {
       "format_on_save": "on",
       "language_servers": [
-        "oxc"
+        "oxc",
+        "oxfmt",
+        "oxlint"
       ],
       "prettier": {
         "allowed": false
