@@ -13,6 +13,7 @@ shellcheck = "latest"
 "github:facebook/pyrefly" = "latest"
 ruff = "latest"
 pitchfork = "latest"
+"github:bensadeh/tailspin" = "latest"
 
 [settings]
 pipx.uvx = true

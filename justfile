@@ -17,10 +17,10 @@ web: app
 
 dev:
     op run --env-file .env -- mise exec -- pitchfork start --local
-    mise exec -- pitchfork logs app agent --tail --raw
+    mise exec -- pitchfork logs app agent --tail --raw --since 1min --no-pager
 
 dev-logs:
-    mise exec -- pitchfork logs app agent --tail --raw
+    mise exec -- pitchfork logs app agent --tail --raw --since 1min --no-pager
 
 dev-status:
     mise exec -- pitchfork list

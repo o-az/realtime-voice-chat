@@ -14,6 +14,6 @@ ready_http = "http://127.0.0.1:6969/"
 CLOUDFLARE_INCLUDE_PROCESS_ENV = "true"
 
 [daemons.agent]
-run = "uv run --directory agent agent.py dev"
+run = "uv run --directory agent agent.py start --log-level INFO"
 retry = 0
 ready_output = "registered worker"
