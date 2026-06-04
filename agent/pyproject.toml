@@ -1,5 +1,5 @@
 [project]
-name = "fish-voice-agent"
+name = "fvc-agent"
 version = "0.1.0"
 description = "LiveKit voice agent using Fish Audio TTS"
 readme = "README.md"

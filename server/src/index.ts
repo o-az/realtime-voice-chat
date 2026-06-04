@@ -1,6 +1,15 @@
 import { z } from 'zod'
 import * as Bun from 'bun'
+import { createRequestLogger, initLogger, log } from 'evlog'
 import { AccessToken, RoomAgentDispatch, RoomConfiguration } from 'livekit-server-sdk'
+
+initLogger({
+  env: {
+    service: 'fish-voice-token-server',
+    environment: Bun.env.NODE_ENV ?? 'development'
+  },
+  pretty: true
+})
 
 const AGENT_NAME = 'fish-voice-agent'
 const voiceIdSchema = z.preprocess(
@@ -36,6 +45,35 @@ const headers = new Headers({
   'Access-Control-Allow-Headers': 'Content-Type',
   'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
 })
+
+function withRequestLog(
+  path: string,
+  handler: (request: Request, server: Bun.Server<any>) => Promise<Response> | Response
+) {
+  return async (request: Request, server: Bun.Server<any>) => {
+    const requestLog = createRequestLogger({ method: request.method, path })
+    const start = performance.now()
+
+    try {
+      const response = await handler(request, server)
+      requestLog.set({
+        status: response.status,
+        durationMs: Math.round(performance.now() - start)
+      })
+      requestLog.emit()
+      return response
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      requestLog.error(error instanceof Error ? error : new Error(errorMessage))
+      requestLog.set({
+        status: 400,
+        durationMs: Math.round(performance.now() - start)
+      })
+      requestLog.emit()
+      return Response.json({ error: errorMessage }, { status: 400, headers })
+    }
+  }
+}
 
 // TODO: actually handle errors not just lazy catch
 async function fishJson(path: string): Promise<{ status: number; body: any }> {
@@ -103,7 +141,7 @@ const server = Bun.serve({
     return new Response()
   },
   routes: {
-    '/health': async (request, server) => {
+    '/health': withRequestLog('/health', async (request, server) => {
       const ip = server.requestIP(request)
       const result = { ok: true, rev: Bun.env.COMMIT_SHA }
 
@@ -113,13 +151,13 @@ const server = Bun.serve({
         { ...result, ip: { port: ip.port, family: ip.family, address: ip.address } },
         { headers }
       )
-    },
-    '/config': async request => {
+    }),
+    '/config': withRequestLog('/config', async request => {
       if (request.method !== 'GET')
         return Response.json({ error: 'Method not allowed' }, { status: 405, headers })
       return Response.json({ defaultFishVoiceId: env.FISH_VOICE_ID }, { headers })
-    },
-    '/fish/preflight': async request => {
+    }),
+    '/fish/preflight': withRequestLog('/fish/preflight', async request => {
       if (request.method !== 'GET')
         return Response.json({ error: 'Method not allowed' }, { status: 405, headers })
 
@@ -127,8 +165,8 @@ const server = Bun.serve({
       const voiceId = voiceIdSchema.parse(url.searchParams.get('voiceId')) ?? env.FISH_VOICE_ID
       const result = await checkFishVoice(voiceId)
       return Response.json(result, { headers })
-    },
-    '/token': async request => {
+    }),
+    '/token': withRequestLog('/token', async request => {
       if (request.method !== 'POST')
         return Response.json({ error: 'Method not allowed' }, { status: 405, headers })
 
@@ -168,6 +206,8 @@ const server = Bun.serve({
         ]
       })
 
+      log.info({ action: 'token_issued', room: body.room, identity, voiceId })
+
       return Response.json({
         voiceId,
         identity,
@@ -175,19 +215,18 @@ const server = Bun.serve({
         url: env.LIVEKIT_URL,
         token: await token.toJwt()
       })
-    }
+    })
   },
   error: error => {
-    console.error('unhandled_server_error', {
-      error: error instanceof Error ? error.message : String(error)
-    })
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    log.error({ action: 'unhandled_server_error', error: errorMessage })
     return new Response(errorMessage, { status: 500, headers })
   }
 })
 
 if (Bun.env.NODE_ENV === 'development')
-  console.info('server_started', {
+  log.info({
+    action: 'server_started',
     url: server.url.toString().replaceAll(`${server.port}/`, `${server.port}`)
   })
-else console.info('info', 'server_started', { port: server.port })
+else log.info({ action: 'server_started', port: server.port })

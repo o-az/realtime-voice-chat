@@ -9,10 +9,10 @@ agent:
     op run --env-file .env -- uv run --directory agent agent.py dev
 
 server:
-    op run --env-file .env -- bun run --cwd server dev
+    op run --env-file .env -- bun --bun --cwd server dev
 
 web:
-    op run --env-file .env -- bun run --cwd web dev
+    op run --env-file .env -- bun --bun --cwd web dev
 
 dev:
     bun ./scripts/dev.ts

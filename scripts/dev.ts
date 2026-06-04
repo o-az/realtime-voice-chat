@@ -1,4 +1,13 @@
 import * as Bun from 'bun'
+import { createLogger, initLogger, log } from 'evlog'
+
+initLogger({
+  env: {
+    service: 'fish-voice-dev',
+    environment: Bun.env.NODE_ENV ?? 'development'
+  },
+  pretty: true
+})
 
 type ProcessName = 'server' | 'web' | 'agent'
 
@@ -15,6 +24,7 @@ const processes: Array<ProcessConfig> = [
 
 const children = new Map<ProcessName, Bun.Subprocess>()
 let shuttingDown = false
+const devLog = createLogger({ process: 'dev-supervisor' })
 
 function prefixOutput(name: ProcessName, stream: ReadableStream<Uint8Array> | null) {
   if (!stream) return
@@ -38,16 +48,20 @@ function prefixOutput(name: ProcessName, stream: ReadableStream<Uint8Array> | nu
     if (buffer) process.stdout.write(`[${name}] ${buffer}\n`)
   })().catch(error => {
     const errorMessage = error instanceof Error ? error.message : String(error)
-    console.error(`[${name}] failed to read process output`, errorMessage)
+    log.error({ action: 'process_output_read_failed', child: name, error: errorMessage })
   })
 }
 
 function stopChildren(signal: NodeJS.Signals = 'SIGTERM') {
   shuttingDown = true
+  log.info({ action: 'stopping_children', signal, childCount: children.size })
   for (const child of children.values()) {
     if (!child.killed && child.exitCode === null) child.kill(signal)
   }
 }
+
+devLog.set({ action: 'starting_children', children: processes.map(process => process.name) })
+devLog.emit()
 
 for (const config of processes) {
   const child = Bun.spawn(config.command, {
@@ -57,15 +71,24 @@ for (const config of processes) {
     env: Bun.env,
     onExit(_child, exitCode, signalCode, error) {
       children.delete(config.name)
+      log.info({
+        action: 'child_exited',
+        child: config.name,
+        exitCode,
+        signalCode,
+        error: error?.message,
+        shuttingDown
+      })
       if (shuttingDown) return
 
       const reason = error?.message ?? signalCode ?? `exit code ${exitCode ?? 'unknown'}`
-      console.error(`[${config.name}] exited: ${reason}`)
+      log.error({ action: 'child_failed', child: config.name, reason })
       stopChildren()
     }
   })
 
   children.set(config.name, child)
+  log.info({ action: 'child_started', child: config.name, command: config.command.join(' ') })
   prefixOutput(config.name, child.stdout)
   prefixOutput(config.name, child.stderr)
 }

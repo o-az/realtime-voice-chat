@@ -1,5 +1,5 @@
 {
-  "name": "@fish-voice-chat/server",
+  "name": "@fvc/server",
   "private": true,
   "type": "module",
   "scripts": {

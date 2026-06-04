@@ -1,14 +1,14 @@
 {
-  "name": "@fish-voice-chat/web",
+  "name": "@fvc/web",
   "private": true,
   "type": "module",
   "imports": {
     "#*": "./src/*"
   },
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "vite build",
-    "preview": "vite preview --host 127.0.0.1",
+    "dev": "vite dev --host 127.0.0.1",
+    "build": "bun --bun vite build",
+    "preview": "bun vite preview --host 127.0.0.1",
     "check": "tsgo --project tsconfig.json --noEmit"
   },
   "dependencies": {
@@ -18,9 +18,11 @@
     "vite": "^8.0.16"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.0",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
-    "typescript": "catalog:",
-    "@typescript/native-preview": "catalog:"
+    "@typescript/native-preview": "catalog:",
+    "tailwindcss": "^4.3.0",
+    "typescript": "catalog:"
   }
 }
