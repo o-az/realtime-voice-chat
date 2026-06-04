@@ -1,6 +1,8 @@
 import { Hono } from 'hono'
 import { html } from 'hono/html'
-import { jsxRenderer } from 'hono/jsx-renderer'
+import { jsxRenderer, useRequestContext } from 'hono/jsx-renderer'
+
+import { parseEnv } from '#env.ts'
 
 // https://hono.dev/docs/guides/jsx#jsx
 // https://hono.dev/docs/helpers/html
@@ -10,6 +12,10 @@ import { jsxRenderer } from 'hono/jsx-renderer'
 
 export const landingApp = new Hono<{ Bindings: Cloudflare.Env }>()
 const clientScriptPath = import.meta.env.DEV ? '/src/client.ts' : '/assets/client.js'
+
+function initialRoomName() {
+  return `fish-voice-${crypto.randomUUID().slice(0, 8)}`
+}
 
 const styles = html`
   <style>
@@ -260,8 +266,11 @@ landingApp.use(
   })
 )
 
-landingApp.get('/', context =>
-  context.render(
+function CallPage() {
+  const context = useRequestContext<{ Bindings: Cloudflare.Env }>()
+  const env = parseEnv(context.env)
+
+  return (
     <main>
       <section class='call'>
         <div class='status-row text-red-500!'>
@@ -271,13 +280,11 @@ landingApp.get('/', context =>
           />
           <p id='status'>Disconnected</p>
         </div>
-
-        <h1 class='bg-red-500'>hahaohho</h1>
-
         <label>
           Room
           <input
             id='room'
+            value={initialRoomName()}
             autocorrect='off'
             autocomplete='off'
             spellcheck={false}
@@ -289,6 +296,7 @@ landingApp.get('/', context =>
           Fish voice ID
           <input
             id='voice-id'
+            value={env.FISH_VOICE_ID}
             autocorrect='off'
             autocomplete='off'
             spellcheck={false}
@@ -350,4 +358,6 @@ landingApp.get('/', context =>
       </section>
     </main>
   )
-)
+}
+
+landingApp.get('/', context => context.render(<CallPage />))

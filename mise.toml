@@ -12,6 +12,7 @@ oxlint = "latest"
 shellcheck = "latest"
 "github:facebook/pyrefly" = "latest"
 ruff = "latest"
+pitchfork = "latest"
 
 [settings]
 pipx.uvx = true

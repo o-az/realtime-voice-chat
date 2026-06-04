@@ -27,10 +27,12 @@ const transcriptLines = document.querySelector<HTMLDivElement>('div#transcript-l
 let room: Room | undefined
 let localMicTrack: LocalAudioTrack | undefined
 let micMuted = false
+let lastConnectedVoiceId: string | undefined
+let roomEditedWhileDisconnected = false
 const transcriptItems = new Map<string, TranscriptItem>()
 
 if (!roomInput) throw new Error('Room input is required')
-roomInput.value = `fish-voice-${crypto.randomUUID().slice(0, 8)}`
+if (!roomInput.value) roomInput.value = nextRoomName()
 
 type TranscriptSpeaker = 'you' | 'agent'
 
@@ -40,18 +42,6 @@ type TranscriptItem = {
   text: string
   final: boolean
   receivedAt: number
-}
-
-async function loadConfig() {
-  const response = await fetch(`${tokenServerUrl}/config`)
-  if (!response.ok) return
-
-  const config = (await response.json()) as {
-    defaultFishVoiceId?: string
-  }
-
-  if (voiceIdInput && !voiceIdInput.value && config.defaultFishVoiceId)
-    voiceIdInput.value = config.defaultFishVoiceId
 }
 
 function setConnectedControls(isConnected: boolean) {
@@ -71,6 +61,20 @@ function transcriptStorageKey(roomName = currentRoomName()) {
 
 function currentRoomName() {
   return roomInput?.value.trim() || 'fish-voice-demo'
+}
+
+function nextRoomName() {
+  return `fish-voice-${crypto.randomUUID().slice(0, 8)}`
+}
+
+function resetRoomForVoiceChange(voiceId: string) {
+  if (!roomInput) return
+  if (!lastConnectedVoiceId || lastConnectedVoiceId === voiceId) return
+  if (roomEditedWhileDisconnected) return
+
+  roomInput.value = nextRoomName()
+  loadTranscript(roomInput.value)
+  renderTranscript()
 }
 
 function sortedTranscriptItems(limit = maxPersistedTranscriptItems) {
@@ -209,11 +213,13 @@ function setStatus(message: string, state: ConnectionState | 'error') {
 }
 
 async function connect() {
-  const roomName = currentRoomName()
   const voiceId = voiceIdInput?.value.trim()
   setStatus('Checking Fish Audio', ConnectionState.Connecting)
 
   if (!voiceId) throw new Error('Fish Voice ID is required')
+  resetRoomForVoiceChange(voiceId)
+
+  const roomName = currentRoomName()
   const credentials = await getToken(roomName, voiceId)
   const nextRoom = new Room({
     adaptiveStream: true,
@@ -255,6 +261,8 @@ async function connect() {
   await applyMicMute()
 
   room = nextRoom
+  lastConnectedVoiceId = credentials.voiceId
+  roomEditedWhileDisconnected = false
   setConnectedControls(true)
   setStatus(`Connected as ${credentials.identity}`, ConnectionState.Connected)
   loadTranscript(roomName)
@@ -266,6 +274,7 @@ async function disconnect() {
   await room?.disconnect()
   room = undefined
   localMicTrack = undefined
+  roomEditedWhileDisconnected = false
   setConnectedControls(false)
 }
 
@@ -302,12 +311,13 @@ muteButton?.addEventListener('click', () => {
 })
 
 roomInput.addEventListener('change', () => {
+  if (!room) roomEditedWhileDisconnected = true
   loadTranscript()
   renderTranscript()
 })
 
-loadConfig().catch(error => {
-  console.warn('config load failed', error)
+roomInput.addEventListener('input', () => {
+  if (!room) roomEditedWhileDisconnected = true
 })
 
 loadTranscript()

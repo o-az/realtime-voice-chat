@@ -32,11 +32,9 @@ export default defineConfig(config => {
       forwardConsole: devFlags.VITE_FORWARD_CONSOLE
     },
     build: {
-      rollupOptions: {
+      rolldownOptions: {
         input: './src/client.ts',
-        output: {
-          entryFileNames: 'assets/[name].js'
-        }
+        output: { entryFileNames: 'assets/[name].js' }
       }
     },
     define: {
