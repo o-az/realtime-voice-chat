@@ -5,12 +5,15 @@ import {
   Track,
   createLocalAudioTrack,
   type Participant,
+  type LocalAudioTrack,
   type RemoteTrack,
   type TranscriptionSegment
 } from 'livekit-client'
-import './styles.css'
+import '#styles.css'
 
 const tokenServerUrl = import.meta.env.VITE_TOKEN_SERVER_URL ?? '/api'
+const transcriptStoragePrefix = 'fish-voice-chat:transcript:'
+const maxPersistedTranscriptItems = 120
 
 function requireElement<T extends Element>(selector: string) {
   const element = document.querySelector<T>(selector)
@@ -24,12 +27,15 @@ const roomInput = requireElement<HTMLInputElement>('#room')
 const voiceIdInput = requireElement<HTMLInputElement>('#voice-id')
 const connectButton = requireElement<HTMLButtonElement>('#connect')
 const disconnectButton = requireElement<HTMLButtonElement>('#disconnect')
+const muteButton = requireElement<HTMLButtonElement>('#mute')
 const statusText = requireElement<HTMLParagraphElement>('#status')
 const statusDot = requireElement<HTMLSpanElement>('#status-dot')
 const remoteAudio = requireElement<HTMLAudioElement>('#remote-audio')
 const transcriptLines = requireElement<HTMLDivElement>('#transcript-lines')
 
 let room: Room | undefined
+let localMicTrack: LocalAudioTrack | undefined
+let micMuted = false
 const transcriptItems = new Map<string, TranscriptItem>()
 
 roomInput.value = `fish-voice-${crypto.randomUUID().slice(0, 8)}`
@@ -67,6 +73,66 @@ function setConnectedControls(isConnected: boolean) {
   disconnectButton.disabled = !isConnected
   roomInput.disabled = isConnected
   voiceIdInput.disabled = isConnected
+  muteButton.disabled = !isConnected || !localMicTrack
+}
+
+function transcriptStorageKey(roomName = currentRoomName()) {
+  return `${transcriptStoragePrefix}${roomName}`
+}
+
+function currentRoomName() {
+  return roomInput.value.trim() || 'fish-voice-demo'
+}
+
+function sortedTranscriptItems(limit = maxPersistedTranscriptItems) {
+  return [...transcriptItems.values()].sort((a, b) => a.receivedAt - b.receivedAt).slice(-limit)
+}
+
+function saveTranscript(roomName = currentRoomName()) {
+  try {
+    localStorage.setItem(transcriptStorageKey(roomName), JSON.stringify(sortedTranscriptItems()))
+  } catch (error) {
+    console.warn('failed to save transcript', error)
+  }
+}
+
+function loadTranscript(roomName = currentRoomName()) {
+  transcriptItems.clear()
+
+  try {
+    const stored = localStorage.getItem(transcriptStorageKey(roomName))
+    if (!stored) return
+
+    const parsed = JSON.parse(stored) as unknown
+    if (!Array.isArray(parsed)) return
+
+    for (const item of parsed) {
+      if (!isTranscriptItem(item)) continue
+      transcriptItems.set(item.id, item)
+    }
+  } catch (error) {
+    console.warn('failed to load transcript', error)
+  }
+}
+
+function isTranscriptItem(value: unknown): value is TranscriptItem {
+  if (!value || typeof value !== 'object') return false
+
+  const item = value as Partial<TranscriptItem>
+  return (
+    typeof item.id === 'string' &&
+    (item.speaker === 'you' || item.speaker === 'agent') &&
+    typeof item.text === 'string' &&
+    typeof item.final === 'boolean' &&
+    typeof item.receivedAt === 'number'
+  )
+}
+
+function setMicMuted(nextMuted: boolean) {
+  micMuted = nextMuted
+  muteButton.textContent = micMuted ? 'Unmute mic' : 'Mute mic'
+  muteButton.setAttribute('aria-pressed', String(micMuted))
+  muteButton.classList.toggle('active', micMuted)
 }
 
 function attachRemoteTrack(track: RemoteTrack) {
@@ -78,7 +144,7 @@ function attachRemoteTrack(track: RemoteTrack) {
 }
 
 function renderTranscript() {
-  const lines = [...transcriptItems.values()].sort((a, b) => a.receivedAt - b.receivedAt).slice(-30)
+  const lines = sortedTranscriptItems(30)
 
   transcriptLines.replaceChildren(
     ...lines.map(line => {
@@ -122,6 +188,7 @@ function addTranscript(segments: TranscriptionSegment[], participant?: Participa
   }
 
   renderTranscript()
+  saveTranscript()
 }
 
 async function getToken(roomName: string, voiceId: string) {
@@ -145,7 +212,7 @@ async function getToken(roomName: string, voiceId: string) {
 }
 
 async function connect() {
-  const roomName = roomInput.value.trim() || `fish-voice-${crypto.randomUUID().slice(0, 8)}`
+  const roomName = currentRoomName()
   const voiceId = voiceIdInput.value.trim()
   setStatus('Checking Fish Audio', ConnectionState.Connecting)
 
@@ -170,6 +237,8 @@ async function connect() {
       addTranscript(segments, participant)
     })
     .on(RoomEvent.Disconnected, () => {
+      localMicTrack = undefined
+      setMicMuted(false)
       setConnectedControls(false)
       setStatus('Disconnected', ConnectionState.Disconnected)
     })
@@ -181,21 +250,35 @@ async function connect() {
     noiseSuppression: true,
     autoGainControl: true
   })
+  localMicTrack = micTrack
   await nextRoom.localParticipant.publishTrack(micTrack, {
     name: 'microphone'
   })
+  await applyMicMute()
 
   room = nextRoom
   setConnectedControls(true)
   setStatus(`Connected as ${credentials.identity}`, ConnectionState.Connected)
-  transcriptItems.clear()
+  loadTranscript(roomName)
   renderTranscript()
 }
 
 async function disconnect() {
+  saveTranscript()
   await room?.disconnect()
   room = undefined
+  localMicTrack = undefined
   setConnectedControls(false)
+}
+
+async function applyMicMute() {
+  if (!localMicTrack) return
+
+  if (micMuted) {
+    await localMicTrack.mute()
+  } else {
+    await localMicTrack.unmute()
+  }
 }
 
 connectButton.addEventListener('click', () => {
@@ -214,6 +297,23 @@ disconnectButton.addEventListener('click', () => {
   })
 })
 
+muteButton.addEventListener('click', () => {
+  setMicMuted(!micMuted)
+  applyMicMute().catch((error: unknown) => {
+    console.error(error)
+    setStatus('Mic mute failed', 'error')
+    setMicMuted(!micMuted)
+  })
+})
+
+roomInput.addEventListener('change', () => {
+  loadTranscript()
+  renderTranscript()
+})
+
 loadConfig().catch((error: unknown) => {
   console.warn('config load failed', error)
 })
+
+loadTranscript()
+renderTranscript()

@@ -1,5 +1,5 @@
-import { AccessToken, RoomAgentDispatch, RoomConfiguration } from 'livekit-server-sdk'
 import { z } from 'zod'
+import { AccessToken, RoomAgentDispatch, RoomConfiguration } from 'livekit-server-sdk'
 
 const AGENT_NAME = 'fish-voice-agent'
 const voiceIdSchema = z.preprocess(
@@ -21,7 +21,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(8787)
 })
 
-const env = envSchema.parse(process.env)
+const env = envSchema.parse(Bun.env)
 
 const tokenRequestSchema = z.object({
   room: z.string().trim().min(1).max(64).default('fish-voice-demo'),
@@ -35,40 +35,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type'
 }
 
-// function json(data: unknown, init: ResponseInit = {}) {
-//   return Response.json(data, {
-//     ...init,
-//     headers: {
-//       ...corsHeaders,
-//       ...init.headers
-//     }
-//   })
-// }
-
-// function methodNotAllowed() {
-//   return json({ error: 'Method not allowed' }, { status: 405 })
-// }
-
-// async function parseJsonBody(request: Request) {
-//   if (!request.headers.has('content-length')) return {}
-
-//   try {
-//     return await request.json()
-//   } catch {
-//     throw new Error('Invalid JSON body')
-//   }
-// }
-
-type FishJsonResult = {
-  status: number
-  body: any
-}
-
-async function fishJson(path: string): Promise<FishJsonResult> {
+// TODO: actually handle errors not just lazy catch
+async function fishJson(path: string): Promise<{ status: number; body: any }> {
   const response = await globalThis.fetch(`https://api.fish.audio${path}`, {
-    headers: {
-      Authorization: `Bearer ${env.FISH_API_KEY}`
-    }
+    headers: { Authorization: `Bearer ${env.FISH_API_KEY}` }
   })
   const body = await response.json().catch(() => null)
   return { status: response.status, body }
@@ -130,7 +100,6 @@ async function handleFishPreflight(request: Request): Promise<Response> {
 
   const url = new URL(request.url)
   const voiceId = voiceIdSchema.parse(url.searchParams.get('voiceId')) ?? env.FISH_VOICE_ID
-  // return json(await checkFishVoice(voiceId))
   const result = await checkFishVoice(voiceId)
   return Response.json(result, { headers: corsHeaders })
 }
@@ -139,7 +108,6 @@ async function handleToken(request: Request): Promise<Response> {
   if (request.method !== 'POST')
     return Response.json({ error: 'Method not allowed' }, { status: 405, headers: corsHeaders })
 
-  // const body = tokenRequestSchema.parse(await parseJsonBody(request))
   const parsedBody = await request.json()
   const body = tokenRequestSchema.parse(parsedBody)
 
@@ -195,15 +163,11 @@ async function handleRequest(request: Request): Promise<Response> {
   try {
     if (url.pathname === '/health') {
       if (request.method !== 'GET')
-        // return methodNotAllowed()
-        // return json({ ok: true })
         return Response.json({ error: 'Method not allowed' }, { status: 405, headers: corsHeaders })
       return Response.json({ ok: true }, { headers: corsHeaders })
     }
     if (url.pathname === '/config') {
       if (request.method !== 'GET')
-        // return methodNotAllowed()
-        // return json({ defaultFishVoiceId: env.FISH_VOICE_ID })
         return Response.json({ error: 'Method not allowed' }, { status: 405, headers: corsHeaders })
       return Response.json({ defaultFishVoiceId: env.FISH_VOICE_ID }, { headers: corsHeaders })
     }
@@ -212,11 +176,9 @@ async function handleRequest(request: Request): Promise<Response> {
     }
     if (url.pathname === '/token') return await handleToken(request)
 
-    // return json({ error: 'Not found' }, { status: 404 })
     return Response.json({ error: 'Not found' }, { status: 404, headers: corsHeaders })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
-    // return json({ error: message }, { status: 400 })
     return Response.json({ error: message }, { status: 400, headers: corsHeaders })
   }
 }

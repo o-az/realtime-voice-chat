@@ -8,11 +8,12 @@
     "check": "tsc --noEmit"
   },
   "dependencies": {
-    "livekit-server-sdk": "latest",
-    "zod": "latest"
+    "zod": "catalog:",
+    "livekit-server-sdk": "^2.15.4"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "typescript": "latest"
+    "@types/bun": "catalog:",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
   }
 }

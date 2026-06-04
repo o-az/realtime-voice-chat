@@ -2,6 +2,9 @@
   "name": "@fish-voice-chat/web",
   "private": true,
   "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
@@ -9,12 +12,13 @@
     "check": "tsc --noEmit"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "latest",
-    "livekit-client": "latest",
-    "vite": "latest"
+    "@vitejs/plugin-react": "^6.0.2",
+    "livekit-client": "^2.19.1",
+    "vite": "^8.0.16"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "typescript": "latest"
+    "@types/bun": "catalog:",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
   }
 }

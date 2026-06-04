@@ -2,6 +2,41 @@ interface EnvironmentVariables {
   readonly PORT: string
   readonly ENVIRONMENT: 'development' | 'production' | 'test'
   readonly COMMIT_SHA: string
+  readonly LIVEKIT_URL: string
+  readonly LIVEKIT_API_KEY: string
+  readonly LIVEKIT_API_SECRET: string
+
+  readonly FISH_API_KEY: string
+  readonly FISH_VOICE_ID: string
+
+  readonly OPENAI_API_KEY: string
+  readonly XAI_API_KEY: string
+  readonly BRAVE_SEARCH_API_KEY: string
+
+  readonly STT_PROVIDER: 'xai' | 'openai' | 'brave_search'
+  readonly XAI_STT_LANGUAGE: string
+  readonly XAI_STT_ENDPOINTING_MS: string
+
+  readonly LLM_PROVIDER: 'xai' | 'openai'
+  readonly XAI_LLM_MODEL: string
+  readonly OPENAI_LLM_MODEL: string
+  readonly BRAVE_SEARCH_COUNTRY: string
+  readonly BRAVE_SEARCH_LANGUAGE: string
+  readonly BRAVE_SEARCH_SAFESEARCH: 'off' | 'moderate' | 'strict'
+
+  readonly FISH_TTS_MODEL: string
+
+  readonly FISH_TTS_LATENCY_MODE: 'low' | 'medium' | 'high'
+  readonly FISH_TTS_CHUNK_LENGTH: string
+
+  readonly ENDPOINTING_MIN_DELAY_SECONDS: string
+  readonly ENDPOINTING_MAX_DELAY_SECONDS: string
+  readonly PREEMPTIVE_TTS: 'true' | 'false'
+  readonly AEC_WARMUP_SECONDS: string
+  readonly INTERRUPTION_MODE: 'vad' | 'fixed'
+  readonly INTERRUPTION_MIN_DURATION_SECONDS: string
+  readonly RESUME_FALSE_INTERRUPTION: 'true' | 'false'
+  readonly FALSE_INTERRUPTION_TIMEOUT_SECONDS: string
 }
 
 // Node.js `process.env` auto-completion

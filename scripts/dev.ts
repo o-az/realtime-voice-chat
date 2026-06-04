@@ -59,7 +59,7 @@ for (const config of processes) {
     cwd: import.meta.dir + '/..',
     stdout: 'pipe',
     stderr: 'pipe',
-    env: process.env,
+    env: Bun.env,
     onExit(_child, exitCode, signalCode, error) {
       children.delete(config.name)
       if (shuttingDown) return

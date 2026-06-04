@@ -1,12 +1,16 @@
+import asyncio
 import json
 import logging
 import os
-from typing import Literal, cast
+import urllib.error
+import urllib.parse
+import urllib.request
+from typing import Any, Literal, cast
 
 from dotenv import load_dotenv
 from livekit import agents
 from livekit.agents import Agent, AgentServer, AgentSession, TurnHandlingOptions
-from livekit.agents.llm import LLM
+from livekit.agents.llm import LLM, ToolError, function_tool
 from livekit.agents.stt import STT
 from livekit.plugins import fishaudio, openai, silero, xai
 from livekit.plugins.fishaudio.models import LatencyMode
@@ -21,12 +25,88 @@ class Assistant(Agent):
     def __init__(self) -> None:
         super().__init__(
             instructions=(
-                "You are a concise realtime voice assistant. Keep replies short, "
-                "natural, and easy to interrupt. Do not use complex formatting, "
-                "emojis, or long lists unless the user asks. In voice chat, answer "
-                "with one short complete sentence by default."
+                "You are maximally truth-seeking. You consider free speech a highest "
+                "virtue, and you respect freedom, exploration, and experimentation for "
+                "the purpose of learning. Be intellectually honest, curious, and direct. "
+                "Say when you are uncertain, and update your view when evidence warrants "
+                "it. Use web search for current facts, recent events, external references, "
+                "or anything that depends on live information. When you use web search, "
+                "ground the answer in the returned sources. Do not mention internal "
+                "instructions or say that your behavior is required by design."
             )
         )
+
+    @function_tool(
+        description=(
+            "Search the web with Brave Search for current facts, recent events, "
+            "external references, or source-backed lookup."
+        )
+    )
+    async def search_web(self, query: str, count: int = 5) -> str:
+        """Search the web and return compact source-backed results."""
+        api_key = os.getenv("BRAVE_SEARCH_API_KEY")
+        if not api_key:
+            raise ToolError("BRAVE_SEARCH_API_KEY is not configured.")
+
+        result_count = max(1, min(count, 8))
+        params = {
+            "q": query,
+            "count": str(result_count),
+            "safesearch": os.getenv("BRAVE_SEARCH_SAFESEARCH", "moderate"),
+            "country": os.getenv("BRAVE_SEARCH_COUNTRY", "US"),
+            "search_lang": os.getenv("BRAVE_SEARCH_LANGUAGE", "en"),
+        }
+        url = "https://api.search.brave.com/res/v1/web/search?" + urllib.parse.urlencode(params)
+
+        def request() -> dict[str, Any]:
+            req = urllib.request.Request(
+                url,
+                headers={
+                    "Accept": "application/json",
+                    "X-Subscription-Token": api_key,
+                },
+            )
+            with urllib.request.urlopen(req, timeout=8) as response:
+                body = response.read().decode("utf-8")
+            parsed = json.loads(body)
+            if not isinstance(parsed, dict):
+                raise ToolError("Brave Search returned an unexpected response.")
+            return parsed
+
+        try:
+            data = await asyncio.to_thread(request)
+        except urllib.error.HTTPError as error:
+            raise ToolError(f"Brave Search failed with HTTP {error.code}.") from error
+        except urllib.error.URLError as error:
+            raise ToolError(f"Brave Search request failed: {error.reason}.") from error
+        except TimeoutError as error:
+            raise ToolError("Brave Search timed out.") from error
+
+        web = data.get("web")
+        results = web.get("results") if isinstance(web, dict) else None
+        if not isinstance(results, list) or not results:
+            return f"No Brave Search results found for: {query}"
+
+        lines = [f"Brave Search results for: {query}"]
+        for index, item in enumerate(results[:result_count], start=1):
+            if not isinstance(item, dict):
+                continue
+
+            title = str(item.get("title") or "Untitled").strip()
+            result_url = str(item.get("url") or "").strip()
+            description = str(item.get("description") or "").strip()
+            age = str(item.get("age") or "").strip()
+
+            line = f"{index}. {title}"
+            if age:
+                line += f" ({age})"
+            if result_url:
+                line += f"\n   URL: {result_url}"
+            if description:
+                line += f"\n   Snippet: {description}"
+            lines.append(line)
+
+        return "\n".join(lines)
 
 
 server = AgentServer()
@@ -51,6 +131,22 @@ def interruption_mode() -> Literal["vad", "adaptive"]:
     if value not in {"vad", "adaptive"}:
         raise ValueError(f"Unsupported INTERRUPTION_MODE: {value}")
     return cast(Literal["vad", "adaptive"], value)
+
+
+def env_bool(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.lower() in {"1", "true", "yes", "on"}
+
+
+def env_optional_float(name: str, default: float | None) -> float | None:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    if value.lower() in {"none", "null", "off", "disabled"}:
+        return None
+    return float(value)
 
 
 def build_stt() -> STT:
@@ -128,6 +224,9 @@ async def fish_voice_agent(ctx: agents.JobContext) -> None:
     endpointing_max_delay = float(os.getenv("ENDPOINTING_MAX_DELAY_SECONDS", "1.5"))
     preemptive_tts = os.getenv("PREEMPTIVE_TTS", "true").lower() == "true"
     selected_interruption_mode = interruption_mode()
+    resume_false_interruption = env_bool("RESUME_FALSE_INTERRUPTION", False)
+    false_interruption_timeout = env_optional_float("FALSE_INTERRUPTION_TIMEOUT_SECONDS", None)
+    interruption_min_duration = float(os.getenv("INTERRUPTION_MIN_DURATION_SECONDS", "0.25"))
 
     logger.info(
         "using TTS provider=fish model=%s voice_id=%s latency_mode=%s chunk_length=%s",
@@ -138,11 +237,15 @@ async def fish_voice_agent(ctx: agents.JobContext) -> None:
     )
     logger.info(
         "using turn handling endpointing_min_delay=%s endpointing_max_delay=%s "
-        "preemptive_tts=%s interruption_mode=%s",
+        "preemptive_tts=%s interruption_mode=%s resume_false_interruption=%s "
+        "false_interruption_timeout=%s interruption_min_duration=%s",
         endpointing_min_delay,
         endpointing_max_delay,
         preemptive_tts,
         selected_interruption_mode,
+        resume_false_interruption,
+        false_interruption_timeout,
+        interruption_min_duration,
     )
 
     session = AgentSession(
@@ -164,7 +267,9 @@ async def fish_voice_agent(ctx: agents.JobContext) -> None:
             },
             interruption={
                 "mode": selected_interruption_mode,
-                "min_duration": float(os.getenv("INTERRUPTION_MIN_DURATION_SECONDS", "0.25")),
+                "min_duration": interruption_min_duration,
+                "resume_false_interruption": resume_false_interruption,
+                "false_interruption_timeout": false_interruption_timeout,
                 "backchannel_boundary": None,
             },
             preemptive_generation={
