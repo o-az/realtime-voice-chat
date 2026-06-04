@@ -17,7 +17,7 @@ initLogger({
     service: 'fish-voice-app',
     environment: process.env.NODE_ENV ?? 'development'
   },
-  pretty: true
+  pretty: false
 })
 
 const AGENT_NAME = 'fish-voice-agent'

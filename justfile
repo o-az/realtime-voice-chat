@@ -17,17 +17,20 @@ web: app
 
 dev:
     op run --env-file .env -- mise exec -- pitchfork start --local
-    mise exec -- pitchfork logs app agent --tail --raw --since 1min --no-pager
+    bun scripts/dev-logs.ts
 
 dev-logs:
-    mise exec -- pitchfork logs app agent --tail --raw --since 1min --no-pager
+    bun scripts/dev-logs.ts
+
+dev-logs-tspin:
+    bun scripts/dev-logs.ts | mise exec -- tspin --print --highlight 'cyan:fvc/app,fvc/agent' --highlight 'magenta:transcript user,transcript agent' --highlight 'green:listening,speaking,thinking'
 
 dev-status:
     mise exec -- pitchfork list
 
 dev-restart:
     op run --env-file .env -- mise exec -- pitchfork restart --local
-    mise exec -- pitchfork logs app agent --tail --raw
+    bun scripts/dev-logs.ts
 
 dev-stop:
     mise exec -- pitchfork stop --local

@@ -149,6 +149,20 @@ def env_optional_float(name: str, default: float | None) -> float | None:
     return float(value)
 
 
+def clean_log_text(value: str | None) -> str | None:
+    if not value:
+        return None
+    text = " ".join(value.split())
+    return text or None
+
+
+def chat_item_text(item: object) -> str | None:
+    text_content = getattr(item, "text_content", None)
+    if isinstance(text_content, str):
+        return clean_log_text(text_content)
+    return None
+
+
 def build_stt() -> STT:
     provider = os.getenv("STT_PROVIDER", "xai").lower()
 
@@ -286,6 +300,30 @@ async def fish_voice_agent(ctx: agents.JobContext) -> None:
     @session.on("user_state_changed")
     def on_user_state_changed(event: agents.UserStateChangedEvent) -> None:
         logger.info("user state changed: %s -> %s", event.old_state, event.new_state)
+
+    logged_transcript_items: set[str] = set()
+
+    @session.on("conversation_item_added")
+    def on_conversation_item_added(event: agents.ConversationItemAddedEvent) -> None:
+        item = event.item
+        role = getattr(item, "role", None)
+        if role not in {"user", "assistant"}:
+            return
+
+        item_id = getattr(item, "id", None)
+        if isinstance(item_id, str):
+            if item_id in logged_transcript_items:
+                return
+            logged_transcript_items.add(item_id)
+
+        text = chat_item_text(item)
+        if not text:
+            return
+
+        label = "agent" if role == "assistant" else "user"
+        interrupted = role == "assistant" and getattr(item, "interrupted", False)
+        suffix = " interrupted" if interrupted else ""
+        logger.info("transcript %s%s: %s", label, suffix, text)
 
     @session.on("overlapping_speech")
     def on_overlapping_speech(event: object) -> None:
