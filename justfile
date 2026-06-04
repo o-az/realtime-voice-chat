@@ -6,17 +6,31 @@ dev-agent-download-files:
     uv run --directory agent --module livekit.agents download-files
 
 agent:
-    op run --env-file .env -- uv run --directory agent agent.py dev
+    op run --env-file .env -- mise exec -- pitchfork start agent
 
 app:
-    op run --env-file .env -- env CLOUDFLARE_INCLUDE_PROCESS_ENV=true bun --cwd app dev
+    op run --env-file .env -- mise exec -- pitchfork start app
 
 server: app
 
 web: app
 
 dev:
-    bun ./scripts/dev.ts
+    op run --env-file .env -- mise exec -- pitchfork start --local
+    mise exec -- pitchfork logs app agent --tail --raw
+
+dev-logs:
+    mise exec -- pitchfork logs app agent --tail --raw
+
+dev-status:
+    mise exec -- pitchfork list
+
+dev-restart:
+    op run --env-file .env -- mise exec -- pitchfork restart --local
+    mise exec -- pitchfork logs app agent --tail --raw
+
+dev-stop:
+    mise exec -- pitchfork stop --local
 
 build:
     bun --cwd app build

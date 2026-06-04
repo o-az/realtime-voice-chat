@@ -1,0 +1,19 @@
+#:schema https://pitchfork.en.dev/schema.json
+
+namespace = "fvc"
+
+[settings]
+general.mise = true
+
+[daemons.app]
+run = "bun --cwd app dev"
+retry = 0
+ready_http = "http://127.0.0.1:6969/"
+
+[daemons.app.env]
+CLOUDFLARE_INCLUDE_PROCESS_ENV = "true"
+
+[daemons.agent]
+run = "uv run --directory agent agent.py dev"
+retry = 0
+ready_output = "registered worker"
