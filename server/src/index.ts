@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import * as Bun from 'bun'
 import { AccessToken, RoomAgentDispatch, RoomConfiguration } from 'livekit-server-sdk'
 
 const AGENT_NAME = 'fish-voice-agent'
@@ -12,7 +13,7 @@ const voiceIdSchema = z.preprocess(
 )
 
 const envSchema = z.object({
-  LIVEKIT_URL: z.string().url(),
+  LIVEKIT_URL: z.url(),
   LIVEKIT_API_KEY: z.string().min(1),
   LIVEKIT_API_SECRET: z.string().min(1),
   FISH_API_KEY: z.string().min(1),
@@ -29,15 +30,16 @@ const tokenRequestSchema = z.object({
   identity: z.string().trim().min(1).max(64).optional()
 })
 
-const corsHeaders = {
+const headers = new Headers({
+  'X-Request-Id': Bun.randomUUIDv7(),
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type'
-}
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
+})
 
 // TODO: actually handle errors not just lazy catch
 async function fishJson(path: string): Promise<{ status: number; body: any }> {
-  const response = await globalThis.fetch(`https://api.fish.audio${path}`, {
+  const response = await fetch(`https://api.fish.audio${path}`, {
     headers: { Authorization: `Bearer ${env.FISH_API_KEY}` }
   })
   const body = await response.json().catch(() => null)
@@ -51,7 +53,7 @@ async function checkFishVoice(voiceId: string) {
     fishJson(`/model/${voiceId}`)
   ])
 
-  const ttsProbe = await globalThis.fetch('https://api.fish.audio/v1/tts', {
+  const ttsProbe = await fetch('https://api.fish.audio/v1/tts', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${env.FISH_API_KEY}`,
@@ -89,103 +91,103 @@ async function checkFishVoice(voiceId: string) {
     },
     tts: {
       status: ttsProbe.status,
-      message: ttsBody?.message ?? null
+      message: ttsBody ? JSON.stringify(ttsBody, undefined, 2) : null
     }
   }
 }
 
-async function handleFishPreflight(request: Request): Promise<Response> {
-  if (request.method !== 'GET')
-    return Response.json({ error: 'Method not allowed' }, { status: 405, headers: corsHeaders })
-
-  const url = new URL(request.url)
-  const voiceId = voiceIdSchema.parse(url.searchParams.get('voiceId')) ?? env.FISH_VOICE_ID
-  const result = await checkFishVoice(voiceId)
-  return Response.json(result, { headers: corsHeaders })
-}
-
-async function handleToken(request: Request): Promise<Response> {
-  if (request.method !== 'POST')
-    return Response.json({ error: 'Method not allowed' }, { status: 405, headers: corsHeaders })
-
-  const parsedBody = await request.json()
-  const body = tokenRequestSchema.parse(parsedBody)
-
-  const voiceId = body.voiceId ?? env.FISH_VOICE_ID
-  const fish = await checkFishVoice(voiceId)
-  if (!fish.ok) {
-    const detail = fish.tts.message
-      ? `Fish TTS ${fish.tts.status}: ${fish.tts.message}`
-      : 'Fish preflight failed'
-    throw new Error(detail)
-  }
-
-  const identity = body.identity ?? `browser-${crypto.randomUUID().slice(0, 8)}`
-
-  const token = new AccessToken(env.LIVEKIT_API_KEY, env.LIVEKIT_API_SECRET, {
-    identity,
-    ttl: '10m'
-  })
-
-  token.addGrant({
-    room: body.room,
-    roomJoin: true,
-    canPublish: true,
-    canSubscribe: true
-  })
-
-  token.roomConfig = new RoomConfiguration({
-    name: body.room,
-    agents: [
-      new RoomAgentDispatch({
-        agentName: AGENT_NAME,
-        metadata: JSON.stringify({ fishVoiceId: voiceId })
-      })
-    ]
-  })
-
-  return Response.json({
-    voiceId,
-    identity,
-    room: body.room,
-    url: env.LIVEKIT_URL,
-    token: await token.toJwt()
-  })
-}
-
-async function handleRequest(request: Request): Promise<Response> {
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: corsHeaders })
-  }
-
-  const url = new URL(request.url)
-
-  try {
-    if (url.pathname === '/health') {
-      if (request.method !== 'GET')
-        return Response.json({ error: 'Method not allowed' }, { status: 405, headers: corsHeaders })
-      return Response.json({ ok: true }, { headers: corsHeaders })
-    }
-    if (url.pathname === '/config') {
-      if (request.method !== 'GET')
-        return Response.json({ error: 'Method not allowed' }, { status: 405, headers: corsHeaders })
-      return Response.json({ defaultFishVoiceId: env.FISH_VOICE_ID }, { headers: corsHeaders })
-    }
-    if (url.pathname === '/fish/preflight') {
-      return await handleFishPreflight(request)
-    }
-    if (url.pathname === '/token') return await handleToken(request)
-
-    return Response.json({ error: 'Not found' }, { status: 404, headers: corsHeaders })
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return Response.json({ error: message }, { status: 400, headers: corsHeaders })
-  }
-}
-
-Bun.serve({
+const server = Bun.serve({
   port: env.PORT,
-  fetch: handleRequest
+  fetch: async request => {
+    if (request.method === 'OPTIONS') return new Response(null, { status: 204 })
+    return new Response()
+  },
+  routes: {
+    '/health': async (request, server) => {
+      const ip = server.requestIP(request)
+      const result = { ok: true, rev: Bun.env.COMMIT_SHA }
+
+      if (!ip) return Response.json(result, { headers })
+
+      return Response.json(
+        { ...result, ip: { port: ip.port, family: ip.family, address: ip.address } },
+        { headers }
+      )
+    },
+    '/config': async request => {
+      if (request.method !== 'GET')
+        return Response.json({ error: 'Method not allowed' }, { status: 405, headers })
+      return Response.json({ defaultFishVoiceId: env.FISH_VOICE_ID }, { headers })
+    },
+    '/fish/preflight': async request => {
+      if (request.method !== 'GET')
+        return Response.json({ error: 'Method not allowed' }, { status: 405, headers })
+
+      const url = new URL(request.url)
+      const voiceId = voiceIdSchema.parse(url.searchParams.get('voiceId')) ?? env.FISH_VOICE_ID
+      const result = await checkFishVoice(voiceId)
+      return Response.json(result, { headers })
+    },
+    '/token': async request => {
+      if (request.method !== 'POST')
+        return Response.json({ error: 'Method not allowed' }, { status: 405, headers })
+
+      const parsedBody = await request.json()
+      const body = tokenRequestSchema.parse(parsedBody)
+
+      const voiceId = body.voiceId ?? env.FISH_VOICE_ID
+      const fish = await checkFishVoice(voiceId)
+      if (!fish.ok) {
+        const detail = fish.tts.message
+          ? `Fish TTS ${fish.tts.status}: ${fish.tts.message}`
+          : 'Fish preflight failed'
+        throw new Error(detail)
+      }
+
+      const identity = body.identity ?? `browser-${crypto.randomUUID().slice(0, 8)}`
+
+      const token = new AccessToken(env.LIVEKIT_API_KEY, env.LIVEKIT_API_SECRET, {
+        identity,
+        ttl: '10m'
+      })
+
+      token.addGrant({
+        room: body.room,
+        roomJoin: true,
+        canPublish: true,
+        canSubscribe: true
+      })
+
+      token.roomConfig = new RoomConfiguration({
+        name: body.room,
+        agents: [
+          new RoomAgentDispatch({
+            agentName: AGENT_NAME,
+            metadata: JSON.stringify({ fishVoiceId: voiceId })
+          })
+        ]
+      })
+
+      return Response.json({
+        voiceId,
+        identity,
+        room: body.room,
+        url: env.LIVEKIT_URL,
+        token: await token.toJwt()
+      })
+    }
+  },
+  error: error => {
+    console.error('unhandled_server_error', {
+      error: error instanceof Error ? error.message : String(error)
+    })
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    return new Response(errorMessage, { status: 500, headers })
+  }
 })
 
-console.log(`token server listening on http://localhost:${env.PORT}`)
+if (Bun.env.NODE_ENV === 'development')
+  console.info('server_started', {
+    url: server.url.toString().replaceAll(`${server.port}/`, `${server.port}`)
+  })
+else console.info('info', 'server_started', { port: server.port })

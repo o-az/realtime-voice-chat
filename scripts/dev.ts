@@ -8,9 +8,9 @@ type ProcessConfig = {
 }
 
 const processes: Array<ProcessConfig> = [
-  { name: 'server', command: ['bun', 'run', 'dev:server'] },
-  { name: 'web', command: ['bun', 'run', 'dev:web'] },
-  { name: 'agent', command: ['bun', 'run', 'dev:agent'] }
+  { name: 'server', command: ['just', 'server'] },
+  { name: 'web', command: ['just', 'web'] },
+  { name: 'agent', command: ['just', 'agent'] }
 ]
 
 const children = new Map<ProcessName, Bun.Subprocess>()
