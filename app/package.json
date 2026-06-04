@@ -16,9 +16,9 @@
   "dependencies": {
     "@std/ulid": "npm:@jsr/std__ulid",
     "evlog": "catalog:",
-    "livekit-server-sdk": "^2.15.4",
     "hono": "^4.12.23",
     "livekit-client": "^2.19.1",
+    "livekit-server-sdk": "^2.15.4",
     "zod": "catalog:"
   },
   "devDependencies": {

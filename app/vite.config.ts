@@ -31,6 +31,14 @@ export default defineConfig(config => {
       port: Number(env.PORT ?? 69_69),
       forwardConsole: devFlags.VITE_FORWARD_CONSOLE
     },
+    build: {
+      rollupOptions: {
+        input: './src/client.ts',
+        output: {
+          entryFileNames: 'assets/[name].js'
+        }
+      }
+    },
     define: {
       COMMIT_SHA: JSON.stringify(COMMIT_SHA)
     }

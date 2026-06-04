@@ -9,7 +9,7 @@ initLogger({
   pretty: true
 })
 
-type ProcessName = 'server' | 'web' | 'agent'
+type ProcessName = 'app' | 'agent'
 
 type ProcessConfig = {
   name: ProcessName
@@ -17,8 +17,7 @@ type ProcessConfig = {
 }
 
 const processes: Array<ProcessConfig> = [
-  { name: 'server', command: ['just', 'server'] },
-  { name: 'web', command: ['just', 'web'] },
+  { name: 'app', command: ['just', 'app'] },
   { name: 'agent', command: ['just', 'agent'] }
 ]
 

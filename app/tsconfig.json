@@ -42,8 +42,9 @@
     ]
   },
   "include": [
-    "src"
-, "_/env.ts"  ],
+    "src",
+    "_/env.ts"
+  ],
   "files": [
     "vite.config.ts",
     "worker-configuration.d.ts"

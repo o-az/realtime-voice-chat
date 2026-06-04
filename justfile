@@ -8,14 +8,18 @@ dev-agent-download-files:
 agent:
     op run --env-file .env -- uv run --directory agent agent.py dev
 
-server:
-    op run --env-file .env -- bun --bun --cwd server dev
+app:
+    op run --env-file .env -- env CLOUDFLARE_INCLUDE_PROCESS_ENV=true bun --cwd app dev
 
-web:
-    op run --env-file .env -- bun --bun --cwd web dev
+server: app
+
+web: app
 
 dev:
     bun ./scripts/dev.ts
+
+build:
+    bun --cwd app build
 
 format:
     oxfmt --config='oxfmt.config.ts' --write
