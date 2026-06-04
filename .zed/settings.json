@@ -108,6 +108,11 @@
         },
         "ignore_system_version": false
       }
+    },
+    "vscode-html-language-server": {
+      "fetch": {
+        "pre_release": true
+      }
     }
   },
   "languages": {
@@ -159,7 +164,8 @@
       "language_servers": [
         "oxc",
         "oxfmt",
-        "oxlint"
+        "oxlint",
+        "vscode-html-language-server"
       ],
       "prettier": {
         "allowed": false

@@ -16,7 +16,8 @@
     "types": [
       "bun",
       "node",
-      "vite/client"
+      "vite/client",
+      "typed-query-selector/strict"
     ]
   },
   "include": [

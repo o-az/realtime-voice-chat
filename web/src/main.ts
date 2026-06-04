@@ -1,12 +1,12 @@
 import {
-  ConnectionState,
   Room,
-  RoomEvent,
   Track,
+  RoomEvent,
+  ConnectionState,
   createLocalAudioTrack,
+  type RemoteTrack,
   type Participant,
   type LocalAudioTrack,
-  type RemoteTrack,
   type TranscriptionSegment
 } from 'livekit-client'
 import '#styles.css'
@@ -15,29 +15,22 @@ const tokenServerUrl = import.meta.env.VITE_TOKEN_SERVER_URL ?? '/api'
 const transcriptStoragePrefix = 'fish-voice-chat:transcript:'
 const maxPersistedTranscriptItems = 120
 
-function requireElement<T extends Element>(selector: string) {
-  const element = document.querySelector<T>(selector)
-  if (!element) {
-    throw new Error(`Missing required element: ${selector}`)
-  }
-  return element
-}
-
-const roomInput = requireElement<HTMLInputElement>('#room')
-const voiceIdInput = requireElement<HTMLInputElement>('#voice-id')
-const connectButton = requireElement<HTMLButtonElement>('#connect')
-const disconnectButton = requireElement<HTMLButtonElement>('#disconnect')
-const muteButton = requireElement<HTMLButtonElement>('#mute')
-const statusText = requireElement<HTMLParagraphElement>('#status')
-const statusDot = requireElement<HTMLSpanElement>('#status-dot')
-const remoteAudio = requireElement<HTMLAudioElement>('#remote-audio')
-const transcriptLines = requireElement<HTMLDivElement>('#transcript-lines')
+const roomInput = document.querySelector('input#room')
+const voiceIdInput = document.querySelector('input#voice-id')
+const connectButton = document.querySelector('button#connect')
+const disconnectButton = document.querySelector('button#disconnect')
+const muteButton = document.querySelector('button#mute')
+const statusText = document.querySelector('p#status')
+const statusDot = document.querySelector('span#status-dot')
+const remoteAudio = document.querySelector('audio#remote-audio')
+const transcriptLines = document.querySelector('div#transcript-lines')
 
 let room: Room | undefined
 let localMicTrack: LocalAudioTrack | undefined
 let micMuted = false
 const transcriptItems = new Map<string, TranscriptItem>()
 
+if (!roomInput) throw new Error('Room input is required')
 roomInput.value = `fish-voice-${crypto.randomUUID().slice(0, 8)}`
 
 type TranscriptSpeaker = 'you' | 'agent'
@@ -54,22 +47,22 @@ async function loadConfig() {
   const response = await fetch(`${tokenServerUrl}/config`)
   if (!response.ok) return
 
+  // TODO: use zod and properly type this response
   const config = (await response.json()) as {
     defaultFishVoiceId?: string
   }
 
-  if (!voiceIdInput.value && config.defaultFishVoiceId) {
-    voiceIdInput.value = config.defaultFishVoiceId
-  }
-}
+  if (!voiceIdInput) return
 
-function setStatus(message: string, state: ConnectionState | 'error') {
-  statusText.textContent = message
-  statusDot.dataset.state = state
+  if (!voiceIdInput?.value && config.defaultFishVoiceId)
+    voiceIdInput.value = config.defaultFishVoiceId
 }
 
 function setConnectedControls(isConnected: boolean) {
+  if (!connectButton || !disconnectButton || !roomInput || !voiceIdInput || !muteButton) return
+  connectButton.classList.toggle('active', isConnected)
   connectButton.disabled = isConnected
+  disconnectButton.classList.toggle('active', isConnected)
   disconnectButton.disabled = !isConnected
   roomInput.disabled = isConnected
   voiceIdInput.disabled = isConnected
@@ -81,7 +74,7 @@ function transcriptStorageKey(roomName = currentRoomName()) {
 }
 
 function currentRoomName() {
-  return roomInput.value.trim() || 'fish-voice-demo'
+  return roomInput?.value.trim() || 'fish-voice-demo'
 }
 
 function sortedTranscriptItems(limit = maxPersistedTranscriptItems) {
@@ -118,6 +111,7 @@ function loadTranscript(roomName = currentRoomName()) {
 function isTranscriptItem(value: unknown): value is TranscriptItem {
   if (!value || typeof value !== 'object') return false
 
+  // TODO: type properly
   const item = value as Partial<TranscriptItem>
   return (
     typeof item.id === 'string' &&
@@ -131,16 +125,17 @@ function isTranscriptItem(value: unknown): value is TranscriptItem {
 function setMicMuted(nextMuted: boolean) {
   micMuted = nextMuted
   const label = micMuted ? 'Unmute microphone' : 'Mute microphone'
-  muteButton.setAttribute('aria-label', label)
-  muteButton.setAttribute('title', label)
-  muteButton.setAttribute('aria-pressed', String(micMuted))
-  muteButton.classList.toggle('active', micMuted)
+  muteButton?.setAttribute('aria-label', label)
+  muteButton?.setAttribute('title', label)
+  muteButton?.setAttribute('aria-pressed', String(micMuted))
+  muteButton?.classList.toggle('active', micMuted)
 }
 
 function attachRemoteTrack(track: RemoteTrack) {
   if (track.kind !== Track.Kind.Audio) return
+  if (!remoteAudio) return
   track.attach(remoteAudio)
-  void remoteAudio.play().catch((error: unknown) => {
+  void remoteAudio.play().catch(error => {
     console.warn('remote audio playback did not start automatically', error)
   })
 }
@@ -148,7 +143,7 @@ function attachRemoteTrack(track: RemoteTrack) {
 function renderTranscript() {
   const lines = sortedTranscriptItems(30)
 
-  transcriptLines.replaceChildren(
+  transcriptLines?.replaceChildren(
     ...lines.map(line => {
       const row = document.createElement('p')
       row.className = `transcript-line ${line.final ? 'final' : 'partial'}`
@@ -165,7 +160,7 @@ function renderTranscript() {
       return row
     })
   )
-  transcriptLines.scrollTop = transcriptLines.scrollHeight
+  if (transcriptLines) transcriptLines.scrollTop = transcriptLines.scrollHeight
 }
 
 function participantSpeaker(participant?: Participant): TranscriptSpeaker {
@@ -200,10 +195,9 @@ async function getToken(roomName: string, voiceId: string) {
     body: JSON.stringify({ room: roomName, voiceId: voiceId || undefined })
   })
 
-  if (!response.ok) {
-    throw new Error(`Token request failed: ${response.status}`)
-  }
+  if (!response.ok) throw new Error(`Token request failed: ${response.status}`)
 
+  // TODO: use zod and properly type this response
   return (await response.json()) as {
     identity: string
     room: string
@@ -213,11 +207,18 @@ async function getToken(roomName: string, voiceId: string) {
   }
 }
 
+function setStatus(message: string, state: ConnectionState | 'error') {
+  if (!statusText || !statusDot) return
+  statusText.textContent = message
+  statusDot.dataset.state = state
+}
+
 async function connect() {
   const roomName = currentRoomName()
-  const voiceId = voiceIdInput.value.trim()
+  const voiceId = voiceIdInput?.value.trim()
   setStatus('Checking Fish Audio', ConnectionState.Connecting)
 
+  if (!voiceId) throw new Error('Fish Voice ID is required')
   const credentials = await getToken(roomName, voiceId)
   const nextRoom = new Room({
     adaptiveStream: true,
@@ -276,14 +277,11 @@ async function disconnect() {
 async function applyMicMute() {
   if (!localMicTrack) return
 
-  if (micMuted) {
-    await localMicTrack.mute()
-  } else {
-    await localMicTrack.unmute()
-  }
+  if (micMuted) await localMicTrack.mute()
+  else await localMicTrack.unmute()
 }
 
-connectButton.addEventListener('click', () => {
+connectButton?.addEventListener('click', () => {
   connect().catch((error: unknown) => {
     console.error(error)
     const message = error instanceof Error ? error.message : 'Connection failed'
@@ -292,16 +290,16 @@ connectButton.addEventListener('click', () => {
   })
 })
 
-disconnectButton.addEventListener('click', () => {
-  disconnect().catch((error: unknown) => {
+disconnectButton?.addEventListener('click', () => {
+  disconnect().catch(error => {
     console.error(error)
     setStatus('Disconnect failed', 'error')
   })
 })
 
-muteButton.addEventListener('click', () => {
+muteButton?.addEventListener('click', () => {
   setMicMuted(!micMuted)
-  applyMicMute().catch((error: unknown) => {
+  applyMicMute().catch(error => {
     console.error(error)
     setStatus('Mic mute failed', 'error')
     setMicMuted(!micMuted)
@@ -313,7 +311,7 @@ roomInput.addEventListener('change', () => {
   renderTranscript()
 })
 
-loadConfig().catch((error: unknown) => {
+loadConfig().catch(error => {
   console.warn('config load failed', error)
 })
 

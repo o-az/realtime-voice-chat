@@ -17,7 +17,7 @@
       },
     },
     "server": {
-      "name": "@fish-voice-chat/server",
+      "name": "@fvc/server",
       "dependencies": {
         "evlog": "catalog:",
         "livekit-server-sdk": "^2.15.4",
@@ -31,7 +31,7 @@
       },
     },
     "web": {
-      "name": "@fish-voice-chat/web",
+      "name": "@fvc/web",
       "dependencies": {
         "@vitejs/plugin-react": "^6.0.2",
         "evlog": "catalog:",
@@ -44,6 +44,7 @@
         "@types/node": "catalog:",
         "@typescript/native-preview": "catalog:",
         "tailwindcss": "^4.3.0",
+        "typed-query-selector": "^2.12.2",
         "typescript": "catalog:",
       },
     },
@@ -65,9 +66,9 @@
 
     "@emnapi/wasi-threads": ["@emnapi/wasi-threads@1.2.1", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-uTII7OYF+/Mes/MrcIOYp5yOtSMLBWSIoLPpcgwipoiKbli6k322tcoFsxoIIxPDqW01SQGAgko4EzZi2BNv2w=="],
 
-    "@fish-voice-chat/server": ["@fish-voice-chat/server@workspace:server"],
+    "@fvc/server": ["@fvc/server@workspace:server"],
 
-    "@fish-voice-chat/web": ["@fish-voice-chat/web@workspace:web"],
+    "@fvc/web": ["@fvc/web@workspace:web"],
 
     "@jridgewell/gen-mapping": ["@jridgewell/gen-mapping@0.3.13", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.0", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA=="],
 
@@ -280,6 +281,8 @@
     "type-fest": ["type-fest@4.41.0", "", {}, "sha512-TeTSQ6H5YHvpqVwBRcnLDCBnDOHWYu7IvGbHT6N8AOymcr9PJGjc1GTtiWZTYg0NCgYwvnYWEkVChQAr9bjfwA=="],
 
     "typed-emitter": ["typed-emitter@2.1.0", "", { "optionalDependencies": { "rxjs": "*" } }, "sha512-g/KzbYKbH5C2vPkaXGu8DJlHrGKHLsM25Zg9WuC9pMGfuvT+X25tZQWo5fK1BjBm8+UrVE9LDCvaY0CQk+fXDA=="],
+
+    "typed-query-selector": ["typed-query-selector@2.12.2", "", {}, "sha512-EOPFbyIub4ngnEdqi2yOcNeDLaX/0jcE1JoAXQDDMIthap7FoN795lc/SHfIq2d416VufXpM8z/lD+WRm2gfOQ=="],
 
     "typescript": ["typescript@6.0.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw=="],
 

@@ -28,7 +28,7 @@ const envSchema = z.object({
   FISH_API_KEY: z.string().min(1),
   FISH_VOICE_ID: z.string().min(1),
   FISH_TTS_MODEL: z.enum(['s1', 's2-pro']).default('s2-pro'),
-  PORT: z.coerce.number().int().positive().default(8787)
+  PORT: z.coerce.number().int().positive().default(63_63)
 })
 
 const env = envSchema.parse(Bun.env)

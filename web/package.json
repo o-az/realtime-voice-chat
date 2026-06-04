@@ -23,6 +23,7 @@
     "@types/node": "catalog:",
     "@typescript/native-preview": "catalog:",
     "tailwindcss": "^4.3.0",
+    "typed-query-selector": "^2.12.2",
     "typescript": "catalog:"
   }
 }

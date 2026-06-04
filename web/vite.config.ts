@@ -16,7 +16,7 @@ export default defineConfig({
     proxy: {
       '/api': {
         changeOrigin: true,
-        target: 'http://127.0.0.1:8787',
+        target: 'http://127.0.0.1:6363',
         rewrite: path => {
           Bun.sleepSync(1_000)
           return path.replace(/^\/api/, '')
