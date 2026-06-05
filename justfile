@@ -9,13 +9,13 @@ agent:
     op run --env-file .env -- mise exec -- pitchfork start realtime
 
 realtime:
-    op run --env-file .env -- mise exec -- pitchfork start realtime
+    mise exec -- pitchfork start realtime
 
 livekit-agent:
     op run --env-file .env -- fish -c 'if test "$TTS_PROVIDER" = miso; mise exec -- pitchfork start misotts agent; else mise exec -- pitchfork start agent; end'
 
 app:
-    op run --env-file .env -- mise exec -- pitchfork start app
+    mise exec -- pitchfork start app
 
 misotts:
     uv run --directory misotts --python 3.12 server.py
@@ -25,7 +25,7 @@ server: app
 web: app
 
 dev:
-    op run --env-file .env -- mise exec -- pitchfork start app realtime
+    mise exec -- pitchfork start app realtime
     bun scripts/dev-logs.ts
 
 dev-logs:
@@ -38,7 +38,7 @@ dev-status:
     mise exec -- pitchfork list
 
 dev-restart:
-    op run --env-file .env -- mise exec -- pitchfork restart app realtime
+    mise exec -- pitchfork restart app realtime
     bun scripts/dev-logs.ts
 
 dev-stop:

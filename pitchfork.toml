@@ -9,7 +9,7 @@ bind_port = 3223
 bind_address = "127.0.0.1"
 
 [daemons.app]
-run = "bun --cwd app dev"
+run = "op run --env-file .env -- bun --cwd app dev"
 retry = 0
 ready_http = "http://127.0.0.1:6969/"
 
@@ -19,7 +19,7 @@ CLOUDFLARE_INCLUDE_PROCESS_ENV = "true"
 #
 # current backend daemon -- everything below is side attempts
 [daemons.realtime]
-run = "uv run --directory realtime server.py"
+run = "op run --env-file .env -- uv run --directory realtime server.py"
 retry = 0
 ready_http = "http://127.0.0.1:8791/health"
 

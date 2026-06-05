@@ -1,14 +1,9 @@
 import { z } from 'zod'
 
 export const envSchema = z.object({
-  LIVEKIT_URL: z.url(),
-  LIVEKIT_API_KEY: z.string().min(1),
-  LIVEKIT_API_SECRET: z.string().min(1),
   REALTIME_API_URL: z.url().default('http://127.0.0.1:8791'),
-  FISH_API_KEY: z.string().min(1),
-  FISH_VOICE_ID: z.string().min(1),
-  TTS_PROVIDER: z.enum(['fish', 'miso']).default('fish'),
-  FISH_TTS_MODEL: z.enum(['s1', 's2-pro']).default('s2-pro'),
+  FISH_VOICE_ID: z.string().min(1).optional(),
+  FISH_TTS_MODEL: z.enum(['s1', 's2-pro']).optional(),
   NODE_ENV: z.string().default('development'),
   PORT: z.coerce.number().int().positive().default(69_69),
   COMMIT_SHA: z.string().optional()
