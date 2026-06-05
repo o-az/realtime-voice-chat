@@ -59,7 +59,7 @@ const pitchfork = Bun.spawn(
     'pitchfork',
     'logs',
     'app',
-    'agent',
+    'realtime',
     ...(tail ? ['--tail'] : []),
     '--raw',
     '--since',

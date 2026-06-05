@@ -23,7 +23,6 @@
     "resolveJsonModule": true,
     "verbatimModuleSyntax": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
     "moduleResolution": "Bundler",
     "useDefineForClassFields": true,
     "allowArbitraryExtensions": true,
@@ -42,10 +41,11 @@
     ]
   },
   "include": [
-    "src",
-    "_/env.ts"
+    "src"
   ],
   "files": [
+    "package.json",
+    "wrangler.json",
     "vite.config.ts",
     "worker-configuration.d.ts"
   ],

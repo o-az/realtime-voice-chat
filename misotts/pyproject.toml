@@ -1,0 +1,16 @@
+[project]
+name = "fvc-misotts"
+version = "0.1.0"
+description = "Local MisoTTS synth server for the Fish voice chat agent"
+requires-python = ">=3.14.5"
+dependencies = ["miso-tts @ git+https://github.com/MisoLabsAI/MisoTTS.git"]
+
+[dependency-groups]
+dev = ["pyrefly>=1.0.0", "ruff>=0.14.0"]
+
+[tool.pyrefly]
+package = false
+search_path = ["."]
+
+[tool.ruff]
+line-length = 100

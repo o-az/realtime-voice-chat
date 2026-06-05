@@ -12,9 +12,12 @@ from livekit import agents
 from livekit.agents import Agent, AgentServer, AgentSession, TurnHandlingOptions
 from livekit.agents.llm import LLM, ToolError, function_tool
 from livekit.agents.stt import STT
+from livekit.agents.tts import TTS
 from livekit.plugins import fishaudio, openai, silero, xai
 from livekit.plugins.fishaudio.models import LatencyMode
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
+
+from miso_tts import MisoTTS
 
 load_dotenv("../.env")
 
@@ -209,6 +212,51 @@ def build_llm() -> LLM:
     raise ValueError(f"Unsupported LLM_PROVIDER: {provider}")
 
 
+def build_tts(voice_id: str) -> TTS:
+    provider = os.getenv("TTS_PROVIDER", "fish").lower()
+
+    if provider == "fish":
+        fish_tts_model = os.getenv("FISH_TTS_MODEL", "s2-pro")
+        fish_tts_latency_mode = fish_latency_mode()
+        fish_tts_chunk_length = int(os.getenv("FISH_TTS_CHUNK_LENGTH", "100"))
+        logger.info(
+            "using TTS provider=fish model=%s voice_id=%s latency_mode=%s chunk_length=%s",
+            fish_tts_model,
+            voice_id,
+            fish_tts_latency_mode,
+            fish_tts_chunk_length,
+        )
+        return fishaudio.TTS(
+            voice_id=voice_id,
+            model=fish_tts_model,
+            latency_mode=fish_tts_latency_mode,
+            chunk_length=fish_tts_chunk_length,
+        )
+
+    if provider == "miso":
+        url = os.getenv("MISO_TTS_URL", "http://127.0.0.1:8799")
+        speaker = int(os.getenv("MISO_TTS_SPEAKER", "0"))
+        sample_rate = int(os.getenv("MISO_TTS_SAMPLE_RATE", "24000"))
+        max_audio_length_ms = int(os.getenv("MISO_TTS_MAX_AUDIO_LENGTH_MS", "10000"))
+        timeout_seconds = float(os.getenv("MISO_TTS_TIMEOUT_SECONDS", "60"))
+        logger.info(
+            "using TTS provider=miso url=%s speaker=%s sample_rate=%s max_audio_length_ms=%s",
+            url,
+            speaker,
+            sample_rate,
+            max_audio_length_ms,
+        )
+        return MisoTTS(
+            url=url,
+            speaker=speaker,
+            sample_rate=sample_rate,
+            max_audio_length_ms=max_audio_length_ms,
+            timeout_seconds=timeout_seconds,
+        )
+
+    raise ValueError(f"Unsupported TTS_PROVIDER: {provider}")
+
+
 def fish_voice_id(ctx: agents.JobContext) -> str:
     fallback = require_env("FISH_VOICE_ID")
     metadata = ctx.job.metadata
@@ -231,9 +279,6 @@ def fish_voice_id(ctx: agents.JobContext) -> str:
 @server.rtc_session(agent_name="fish-voice-agent")
 async def fish_voice_agent(ctx: agents.JobContext) -> None:
     voice_id = fish_voice_id(ctx)
-    fish_tts_model = os.getenv("FISH_TTS_MODEL", "s2-pro")
-    fish_tts_latency_mode = fish_latency_mode()
-    fish_tts_chunk_length = int(os.getenv("FISH_TTS_CHUNK_LENGTH", "100"))
     endpointing_min_delay = float(os.getenv("ENDPOINTING_MIN_DELAY_SECONDS", "0.25"))
     endpointing_max_delay = float(os.getenv("ENDPOINTING_MAX_DELAY_SECONDS", "1.5"))
     preemptive_tts = os.getenv("PREEMPTIVE_TTS", "true").lower() == "true"
@@ -242,13 +287,6 @@ async def fish_voice_agent(ctx: agents.JobContext) -> None:
     false_interruption_timeout = env_optional_float("FALSE_INTERRUPTION_TIMEOUT_SECONDS", None)
     interruption_min_duration = float(os.getenv("INTERRUPTION_MIN_DURATION_SECONDS", "0.25"))
 
-    logger.info(
-        "using TTS provider=fish model=%s voice_id=%s latency_mode=%s chunk_length=%s",
-        fish_tts_model,
-        voice_id,
-        fish_tts_latency_mode,
-        fish_tts_chunk_length,
-    )
     logger.info(
         "using turn handling endpointing_min_delay=%s endpointing_max_delay=%s "
         "preemptive_tts=%s interruption_mode=%s resume_false_interruption=%s "
@@ -265,12 +303,7 @@ async def fish_voice_agent(ctx: agents.JobContext) -> None:
     session = AgentSession(
         stt=build_stt(),
         llm=build_llm(),
-        tts=fishaudio.TTS(
-            voice_id=voice_id,
-            model=fish_tts_model,
-            latency_mode=fish_tts_latency_mode,
-            chunk_length=fish_tts_chunk_length,
-        ),
+        tts=build_tts(voice_id),
         aec_warmup_duration=float(os.getenv("AEC_WARMUP_SECONDS", "1.0")),
         vad=silero.VAD.load(),
         turn_handling=TurnHandlingOptions(

@@ -1,9 +1,12 @@
 #:schema https://pitchfork.en.dev/schema.json
 
 namespace = "fvc"
+settings.general.mise = true
 
-[settings]
-general.mise = true
+[settings.web]
+auto_start = true
+bind_port = 3223
+bind_address = "127.0.0.1"
 
 [daemons.app]
 run = "bun --cwd app dev"
@@ -12,6 +15,15 @@ ready_http = "http://127.0.0.1:6969/"
 
 [daemons.app.env]
 CLOUDFLARE_INCLUDE_PROCESS_ENV = "true"
+
+#
+# current backend daemon -- everything below is side attempts
+[daemons.realtime]
+run = "uv run --directory realtime server.py"
+retry = 0
+ready_http = "http://127.0.0.1:8791/health"
+
+####
 
 [daemons.agent]
 run = "uv run --directory agent agent.py start --log-level INFO"

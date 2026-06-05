@@ -2,6 +2,9 @@
 
 # Absolute Maxims
 
+- Define types only inline if the type is used multiple types, otherwise never define types at the top of the file.
+- Never typecast unless there's a verified bug in the types you are working with.
+- When making fetch requests validate and parse the response using Zod at runtime. Do not `as` the response and do not catch and just log. Instead, if the response is invalid, throw an error with a clear message about what was expected and what was received.
 - Ignore and _never_ modify files that are in `**/_/**` directories, they are scratchnotes for me.
 - "Temporary patch", "Backward compatibility" are undesired and should be avoided unless explicitly requested.
 - do not confidently prescribe infrastructure/tooling fixes from pattern-matching. Verify the tool’s actual contract first, and distinguish “known fix” from “candidate workaround”,

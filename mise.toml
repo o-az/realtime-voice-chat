@@ -7,17 +7,24 @@ node = "latest"
 just = "latest"
 ruff = "latest"
 shfmt = "latest"
+usage = "latest"
 tombi = "latest"
 oxfmt = "latest"
 python = "latest"
 oxlint = "latest"
 pitchfork = "latest"
 shellcheck = "latest"
-"pipx:pipecat-ai-cli" = "latest"
+# pipecat cloud auth whoami
+"pipx:pipecat-ai-cli" = { version = "latest" }
 "github:facebook/pyrefly" = "latest"
 "github:bensadeh/tailspin" = "latest"
-usage = "latest"
+# lk cloud auth
+# search docs: lk docs search "<search-string>"
 "github:livekit/livekit-cli" = "latest"
+#
+# dg login
+# https://developers.deepgram.com/developer-tools/cli/getting-started
+"pipx:deepgram/cli" = "latest"
 
 [env]
 # strictly ensures `uv` uses `mise`'s managed Python interpreter

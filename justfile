@@ -6,6 +6,12 @@ dev-agent-download-files:
     uv run --directory agent --module livekit.agents download-files
 
 agent:
+    op run --env-file .env -- mise exec -- pitchfork start realtime
+
+realtime:
+    op run --env-file .env -- mise exec -- pitchfork start realtime
+
+livekit-agent:
     op run --env-file .env -- fish -c 'if test "$TTS_PROVIDER" = miso; mise exec -- pitchfork start misotts agent; else mise exec -- pitchfork start agent; end'
 
 app:
@@ -19,20 +25,20 @@ server: app
 web: app
 
 dev:
-    op run --env-file .env -- fish -c 'if test "$TTS_PROVIDER" = miso; mise exec -- pitchfork start app agent misotts; else mise exec -- pitchfork start app agent; end'
+    op run --env-file .env -- mise exec -- pitchfork start app realtime
     bun scripts/dev-logs.ts
 
 dev-logs:
     bun scripts/dev-logs.ts
 
 dev-logs-tspin:
-    bun scripts/dev-logs.ts | mise exec -- tspin --print --highlight 'cyan:fvc/app,fvc/agent' --highlight 'magenta:transcript user,transcript agent' --highlight 'green:listening,speaking,thinking'
+    bun scripts/dev-logs.ts | mise exec -- tspin --print --highlight 'cyan:fvc/app,fvc/realtime' --highlight 'magenta:transcript user,transcript agent' --highlight 'green:listening,speaking,thinking,connected,ready'
 
 dev-status:
     mise exec -- pitchfork list
 
 dev-restart:
-    op run --env-file .env -- fish -c 'if test "$TTS_PROVIDER" = miso; mise exec -- pitchfork restart app agent misotts; else mise exec -- pitchfork restart app agent; end'
+    op run --env-file .env -- mise exec -- pitchfork restart app realtime
     bun scripts/dev-logs.ts
 
 dev-stop:

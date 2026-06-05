@@ -1,7 +1,9 @@
 import * as z from 'zod/mini'
 import vitePluginEvlog from 'evlog/vite'
 import { defineConfig, loadEnv } from 'vite'
+import vitePluginReact from '@vitejs/plugin-react'
 import { cloudflare } from '@cloudflare/vite-plugin'
+import vitePluginTailwindCSS from '@tailwindcss/vite'
 import * as NodeChildProcess from 'node:child_process'
 
 const COMMIT_SHA = NodeChildProcess.execSync('git rev-parse --short HEAD')
@@ -25,17 +27,16 @@ export default defineConfig(config => {
   const devtools = config.mode !== 'production' && devFlags.VITE_DEVTOOLS
   return {
     devtools,
-    plugins: [cloudflare(), vitePluginEvlog({ enabled: devtools })],
+    plugins: [
+      cloudflare(),
+      vitePluginEvlog({ enabled: devtools }),
+      vitePluginTailwindCSS(),
+      vitePluginReact()
+    ],
     resolve: { tsconfigPaths: true },
     server: {
       port: Number(env.PORT ?? 69_69),
       forwardConsole: devFlags.VITE_FORWARD_CONSOLE
-    },
-    build: {
-      rolldownOptions: {
-        input: './src/client.ts',
-        output: { entryFileNames: 'assets/[name].js' }
-      }
     },
     define: {
       COMMIT_SHA: JSON.stringify(COMMIT_SHA)

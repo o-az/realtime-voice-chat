@@ -1,5 +1,6 @@
 import type { AppEnv } from '#env.ts'
 
+// O: bad. Read the repo's AGENTS.md please
 type FishJsonResponse = {
   status: number
   body: any
@@ -9,6 +10,7 @@ export async function fishJson(env: AppEnv, path: string): Promise<FishJsonRespo
   const response = await fetch(`https://api.fish.audio${path}`, {
     headers: { Authorization: `Bearer ${env.FISH_API_KEY}` }
   })
+  // O: terrible. Read the repo's AGENTS.md please
   const body = await response.json().catch(() => null)
   return { status: response.status, body }
 }
@@ -33,6 +35,7 @@ export async function checkFishVoice(env: AppEnv, voiceId: string) {
       format: 'mp3'
     })
   })
+  // O: terrible. Read the repo's AGENTS.md please
   const ttsBody = await ttsProbe.json().catch(() => null)
 
   return {
