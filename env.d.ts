@@ -24,10 +24,21 @@ interface EnvironmentVariables {
   readonly BRAVE_SEARCH_LANGUAGE: string
   readonly BRAVE_SEARCH_SAFESEARCH: 'off' | 'moderate' | 'strict'
 
+  readonly TTS_PROVIDER: 'fish' | 'miso'
   readonly FISH_TTS_MODEL: string
 
   readonly FISH_TTS_LATENCY_MODE: 'low' | 'medium' | 'high'
   readonly FISH_TTS_CHUNK_LENGTH: string
+  readonly MISO_TTS_URL: string
+  readonly MISO_TTS_MODEL: string
+  readonly MISO_TTS_DEVICE: string
+  readonly MISO_TTS_DTYPE: 'auto' | 'float16' | 'fp16' | 'bfloat16' | 'bf16' | 'float32' | 'fp32'
+  readonly MISO_TTS_SPEAKER: string
+  readonly MISO_TTS_SAMPLE_RATE: string
+  readonly MISO_TTS_MAX_AUDIO_LENGTH_MS: string
+  readonly MISO_TTS_TIMEOUT_SECONDS: string
+  readonly MISO_TTS_TEMPERATURE: string
+  readonly MISO_TTS_TOPK: string
 
   readonly ENDPOINTING_MIN_DELAY_SECONDS: string
   readonly ENDPOINTING_MAX_DELAY_SECONDS: string

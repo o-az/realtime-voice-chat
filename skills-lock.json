@@ -11,6 +11,24 @@
       "sourceType": "well-known",
       "computedHash": "3b87c33bc858bfe0349a1f3dcf362416c311fb184c9ad35148d5f9d010488ab9"
     },
+    "ce-plan": {
+      "source": "EveryInc/compound-engineering-plugin",
+      "sourceType": "github",
+      "skillPath": "plugins/compound-engineering/skills/ce-plan/SKILL.md",
+      "computedHash": "29bc45f2fff606cdc1c3d02208e27535b0764bbe4c0e542e1f98c9f18a16a881"
+    },
+    "ce-simplify-code": {
+      "source": "EveryInc/compound-engineering-plugin",
+      "sourceType": "github",
+      "skillPath": "plugins/compound-engineering/skills/ce-simplify-code/SKILL.md",
+      "computedHash": "83f9c386e873ac77030caf8e61517207a2ca01836c051464dad787d7f0a34884"
+    },
+    "lfg": {
+      "source": "EveryInc/compound-engineering-plugin",
+      "sourceType": "github",
+      "skillPath": "plugins/compound-engineering/skills/lfg/SKILL.md",
+      "computedHash": "5856ef1e3751e95a6d46bea27aef82fc6e5145a2c002dc80b0eb6392d2ffbff7"
+    },
     "review-logging-patterns": {
       "source": "evlog.dev",
       "sourceType": "well-known",

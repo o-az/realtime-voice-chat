@@ -2,6 +2,7 @@
 
 # Absolute Maxims
 
+- Ignore and _never_ modify files that are in `**/_/**` directories, they are scratchnotes for me.
 - "Temporary patch", "Backward compatibility" are undesired and should be avoided unless explicitly requested.
 - do not confidently prescribe infrastructure/tooling fixes from pattern-matching. Verify the tool’s actual contract first, and distinguish “known fix” from “candidate workaround”,
 - unless impossible, do not answer with "likely", "probably", "might", "if", "could be", or other speculation. Instead, try to answer concretely from verifiable facts, and if verification is not possible, say "I cannot verify this" or "I do not have enough information to answer this" rather than speculating,

@@ -6,17 +6,20 @@ dev-agent-download-files:
     uv run --directory agent --module livekit.agents download-files
 
 agent:
-    op run --env-file .env -- mise exec -- pitchfork start agent
+    op run --env-file .env -- fish -c 'if test "$TTS_PROVIDER" = miso; mise exec -- pitchfork start misotts agent; else mise exec -- pitchfork start agent; end'
 
 app:
     op run --env-file .env -- mise exec -- pitchfork start app
+
+misotts:
+    uv run --directory misotts --python 3.12 server.py
 
 server: app
 
 web: app
 
 dev:
-    op run --env-file .env -- mise exec -- pitchfork start --local
+    op run --env-file .env -- fish -c 'if test "$TTS_PROVIDER" = miso; mise exec -- pitchfork start app agent misotts; else mise exec -- pitchfork start app agent; end'
     bun scripts/dev-logs.ts
 
 dev-logs:
@@ -29,7 +32,7 @@ dev-status:
     mise exec -- pitchfork list
 
 dev-restart:
-    op run --env-file .env -- mise exec -- pitchfork restart --local
+    op run --env-file .env -- fish -c 'if test "$TTS_PROVIDER" = miso; mise exec -- pitchfork restart app agent misotts; else mise exec -- pitchfork restart app agent; end'
     bun scripts/dev-logs.ts
 
 dev-stop:
@@ -53,3 +56,4 @@ lint:
     bun --filter='*' check
 
 fml: format lint
+check: fml
